@@ -1,65 +1,70 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Header from '../components/header.js';
+
+import Link from 'next/Link';
+
+import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 
 export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+    return (
+        <div>
+            <Header />
+            <div className='landing-background'>
+                <Container className='landing-main'>
+                    <Row>
+                        <Col lg={9}>
+                            <h1 className='intro-text'>
+                                Can you SpotTheTrack?
+                            </h1>
+                        </Col>
+                        <Col lg={3} style={{}}>
+                            <Form>
+                                <Form.Group
+                                    controlId='nameForRoom'
+                                    className='landing-button'
+                                >
+                                    <Form.Control
+                                        type='text'
+                                        placeholder='Name'
+                                        size='lg'
+                                    />
+                                </Form.Group>
+                                <Link href='/#'>
+                                    <Button
+                                        className='landing-button'
+                                        size='lg'
+                                        variant='info'
+                                    >
+                                        Host A Game
+                                    </Button>
+                                </Link>
+                                <Link href='/#'>
+                                    <Button
+                                        className='landing-button'
+                                        size='lg'
+                                        variant='secondary'
+                                    >
+                                        Find A Game
+                                    </Button>
+                                </Link>
+                            </Form>
+                        </Col>
+                    </Row>
+                    <div
+                        style={{
+                            'font-size': '110px',
+                            color: 'white',
+                            'font-size': '50px',
+                            'margin-top': '2rem',
+                        }}
+                    >
+                        <p style={{ 'text-align': 'center' }}>
+                            <i class='fa fa-arrow-down' aria-hidden='true'></i>
+                            &nbsp; Rules &nbsp;
+                            <i class='fa fa-arrow-down' aria-hidden='true'></i>
+                        </p>
+                    </div>
+                </Container>
+            </div>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+    );
 }
