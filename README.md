@@ -16,5 +16,5 @@ Can you spot the track?
 
 ## Author
 
-**Ivan Huang** - [younghuangbao](https://github.com/younghuangbao)
-**Jesse Lee** - [butler-jelee21](https://github.com/butler-jelee21)
+- **Ivan Huang** - [younghuangbao](https://github.com/younghuangbao)
+- **Jesse Lee** - [butler-jelee21](https://github.com/butler-jelee21)
