@@ -60,6 +60,12 @@
     text-decoration: none;
 }
 
+/* Solo Game Page */
+.game-background {
+    background: #4b545c;
+    padding: 2rem 0;
+}
+
 @media only screen and (max-width: 1200px) {
     .intro-text {
         font-size: 100px;

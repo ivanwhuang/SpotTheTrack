@@ -47,7 +47,7 @@ export default function Home() {
                                         Find A Game
                                     </Button>
                                 </Link>
-                                <Link href='/#'>
+                                <Link href='/soloGame'>
                                     <Button
                                         className='landing-button'
                                         size='lg'
