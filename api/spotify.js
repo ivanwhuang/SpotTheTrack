@@ -26,15 +26,15 @@ router.get('/gettrack', (req, res) => {
     {
       encoding: 'utf8',
       flag: 'r'
-    });
+  });
   let url = "https://api.spotify.com/v1/search";
   let query = {
-    q: 'drake',
+    q: 'illenium',
     type: 'track',
     limit: '1'
   };
 
-  request.get('https://api.spotify.com/v1/search?q=drake&type=track&limit=1', {
+  request.get('https://api.spotify.com/v1/search?q=Said%20the%20sky&type=track&limit=1&market=US', {
     'auth': {
       'bearer': token
     }
@@ -46,8 +46,14 @@ router.get('/gettrack', (req, res) => {
 
     // TODO: filter for preview url and append to json response along with name
     let bodyAsJson = JSON.parse(body);
-    console.log(bodyAsJson['tracks']['items'][0]['name']);
-    res.json(JSON.stringify({"name": bodyAsJson['tracks']['items'][0]['name']}));
+    // console.log(bodyAsJson['tracks']['items'][0]['preview_url']);
+    res.json(
+      JSON.stringify(
+        {
+          "name": bodyAsJson['tracks']['items'][0]['name'],
+          "preview": bodyAsJson['tracks']['items'][0]['preview_url']
+        })
+    );
   });
 });
 
