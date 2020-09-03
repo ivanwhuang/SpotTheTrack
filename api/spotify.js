@@ -18,7 +18,8 @@ router.get('/test', async (req, res) => {
 });
 
 // @route   GET api/spotify/gettrack
-// @desc    Returns the name of a spotify track with 'drake' as keyword
+// @desc    Returns the name and preview url of a spotify track 
+//          with a random keyword from a predefined list
 // @access  Private
 router.get('/gettrack', (req, res) => {
   let token = fs.readFileSync(
@@ -26,28 +27,47 @@ router.get('/gettrack', (req, res) => {
     {
       encoding: 'utf8',
       flag: 'r'
-    });
+  });
   let url = "https://api.spotify.com/v1/search";
   let query = {
-    q: 'drake',
+    q: 'illenium',
     type: 'track',
     limit: '1'
   };
 
-  request.get('https://api.spotify.com/v1/search?q=drake&type=track&limit=1', {
-    'auth': {
-      'bearer': token
+  // NOTE: prototype for choosing a random artist
+  let artists = Array("Said%20the%20sky", "illenium", "dabin", "Calvin%20Harris");
+  let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
+
+  request.get(
+    `https://api.spotify.com/v1/search?q=${rand_keyword}&type=track&limit=1&market=US`, 
+    {
+      'auth': {
+        'bearer': token
     }
   }, (error, response, body) => {
     if (error) {
       console.error(error);
-      res.status(500).send('Server Error')
+      res.status(500).send('Server Error');
     }
 
-    // TODO: filter for preview url and append to json response along with name
-    let bodyAsJson = JSON.parse(body);
-    console.log(bodyAsJson['tracks']['items'][0]['name']);
-    res.json(JSON.stringify({"name": bodyAsJson['tracks']['items'][0]['name']}));
+    if (response.statusCode == 200) {
+      // TODO: filter for preview url and append to json response along with name
+      let bodyAsJson = JSON.parse(body);
+      // console.log(bodyAsJson['tracks']['items'][0]['preview_url']);
+      res.json(
+        JSON.stringify(
+          {
+            "name": bodyAsJson['tracks']['items'][0]['name'],
+            "preview": bodyAsJson['tracks']['items'][0]['preview_url']
+          })
+      );
+    }
+    else {
+      console.error(`Error: ${response.statusCode}`);
+      res.status(response.statusCode).send('Request Error');
+    }
+    
   });
 });
 
