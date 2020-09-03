@@ -4,6 +4,8 @@
     padding: 0;
 }
 
+/* ------------------ Landing Page ----------------------*/
+
 .landing-background {
     position: relative;
     background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
@@ -13,7 +15,7 @@
 
 .landing-main {
     padding-top: 10%;
-    padding-bottom: 1rem;
+    padding-bottom: 4rem;
 }
 
 .landing-button {
@@ -24,6 +26,38 @@
 .intro-text {
     font-size: 110px;
     color: white;
+}
+
+.landing-rules-wrapper {
+    background: #4b545c;
+    padding-bottom: 2rem;
+}
+
+.landing-rules {
+    padding-top: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.rule-col {
+    margin: 1rem 0;
+}
+
+.footer {
+    background: #343a40;
+    color: white;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.footer-link {
+    color: #17a2b8;
+    /* text-decoration: #117a8b; */
+}
+
+.footer-link:hover {
+    color: #117a8b;
+    text-decoration: none;
 }
 
 @media only screen and (max-width: 1200px) {
