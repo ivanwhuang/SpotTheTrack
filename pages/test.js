@@ -71,7 +71,7 @@ export default function Test() {
       <div>
         <form onSubmit={handleSubmit}>
           <label>
-            Guess Answer: 
+            Guess Answer:&nbsp;
             <input name="guess" onChange={handleChange} />
           </label>
           <Button color="primary" onClick={handleSubmit}>Submit</Button>
