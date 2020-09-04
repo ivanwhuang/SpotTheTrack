@@ -1,6 +1,9 @@
+import React, { useState } from 'react';
+
 import Header from '../components/header.js';
 import Footer from '../components/footer.js';
-import GameChat from '../components/gameChat.js';
+// import GameChat from '../components/gameChat.js';
+import ChatBubble from '../components/chatBubble.js';
 
 import AudioPlayer from 'react-h5-audio-player';
 
@@ -21,7 +24,37 @@ export default function SoloGame() {
     );
 
     const [songName, setSongName] = React.useState(null);
+    const [correctBanner, setCorrectBanner] = React.useState('');
     const [preview, setPreview] = React.useState(null);
+    const [guess, setGuess] = useState('');
+    const [chatLog, setChatLog] = useState([]);
+
+    const handleGuessChange = (e) => {
+        setGuess(e.target.value);
+    };
+
+    const handleGuessSubmit = (e) => {
+        e.preventDefault();
+        addToChatLog(guess);
+        if (guess.trim().toLowerCase() === songName.toLowerCase()) {
+            // alert('Correct!');
+            setCorrectBanner('Correct!');
+        } else {
+            // alert('Wrong!');
+            setCorrectBanner('False! Try Again!');
+        }
+        setGuess('');
+    };
+
+    const addToChatLog = (text) => {
+        var guess = {
+            name: 'Ivan',
+            isMyself: true,
+            time: '12:47',
+            text: text,
+        };
+        setChatLog([...chatLog, guess]);
+    };
 
     React.useEffect(() => {
         async function fetchData() {
@@ -61,12 +94,20 @@ export default function SoloGame() {
                                     ></img>
                                 </Col>
                                 <Col>
+                                    <h1
+                                        style={{
+                                            textAlign: 'center',
+                                            color: 'white',
+                                        }}
+                                    >
+                                        {correctBanner}
+                                    </h1>
                                     <img
                                         src='/images/placeholder.png'
                                         alt='rules1'
                                         style={{
                                             width: '100%',
-                                            marginTop: '4rem',
+                                            marginTop: '1rem',
                                             marginBottom: '1rem',
                                         }}
                                     ></img>
@@ -75,7 +116,51 @@ export default function SoloGame() {
                             </Row>
                         </Col>
                         <Col lg='4'>
-                            <GameChat />
+                            <div className='msger'>
+                                <header className='msger-header'>
+                                    <div className='msger-header-title'>
+                                        <i className='fa fa-comment'></i> Game
+                                        Chat
+                                    </div>
+                                    <div className='msger-header-options'>
+                                        <span>
+                                            <i className='fa fa-cog'></i>
+                                        </span>
+                                    </div>
+                                </header>
+
+                                <main className='msger-chat'>
+                                    {chatLog.map((guess) => (
+                                        <ChatBubble
+                                            key={Math.random()}
+                                            isMyself={guess.isMyself}
+                                            name={guess.name}
+                                            time={guess.time}
+                                            text={guess.text}
+                                        />
+                                    ))}
+                                </main>
+
+                                <form
+                                    className='msger-inputarea'
+                                    onSubmit={handleGuessSubmit}
+                                >
+                                    <input
+                                        type='text'
+                                        className='msger-input'
+                                        placeholder='Take a guess!'
+                                        onChange={handleGuessChange}
+                                        value={guess}
+                                    ></input>
+                                    <Button
+                                        variant='info'
+                                        type='submit'
+                                        className='msger-send-btn'
+                                    >
+                                        Send
+                                    </Button>
+                                </form>
+                            </div>
                         </Col>
                     </Row>
                 </Container>

@@ -31,7 +31,7 @@ export default function Header() {
                 className='header'
             >
                 <Navbar.Brand style={{ 'font-size': '1.8rem' }}>
-                    <i class='fa fa-spotify'></i>
+                    <i className='fa fa-spotify'></i>
                     &nbsp; SpotTheTrack
                 </Navbar.Brand>
             </Navbar>

@@ -29,7 +29,7 @@ export default function Footer() {
                     target='_black'
                     className='footer-link'
                 >
-                    Github <i class='fa fa-github'></i>
+                    Github <i className='fa fa-github'></i>
                 </a>
             </div>
         </div>
