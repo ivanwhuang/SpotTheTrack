@@ -8,12 +8,13 @@ import ChatBubble from '../components/chatBubble.js';
 import AudioPlayer from 'react-h5-audio-player';
 
 import axios from 'axios';
+import io from 'socket.io-client';
 
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 
 import Link from 'next/link';
 
-export default function SoloGame() {
+export default function MultiGame() {
   const Player = (url) => (
     <AudioPlayer
       autoPlay
@@ -57,22 +58,32 @@ export default function SoloGame() {
   };
 
   React.useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await axios.get(
-          'http://localhost:5000/api/spotify/gettrack'
-        );
-        const data = JSON.parse(response.data);
-        console.log(data);
-        setSongName(data.name);
-        setPreview(data.preview);
-        console.log(preview);
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    const socket = io('http://localhost:5000');
+
+    socket.on('message', (message) => {
+      alert(message);
+    });
+
     fetchData();
+
+    // closes the connection when the component disappears from the DOM
+    return () => socket.disconnect();
   }, []);
+
+  async function fetchData() {
+    try {
+      const response = await axios.get(
+        'http://localhost:5000/api/spotify/gettrack'
+      );
+      const data = JSON.parse(response.data);
+      console.log(data);
+      setSongName(data.name);
+      setPreview(data.preview);
+      console.log(preview);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <div>
