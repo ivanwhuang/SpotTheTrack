@@ -1,7 +1,7 @@
 import Header from '../components/header.js';
 import Footer from '../components/footer.js';
 
-import Link from 'next/Link';
+import Link from 'next/link';
 
 import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 
