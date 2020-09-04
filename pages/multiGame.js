@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Header from '../components/header.js';
 import Footer from '../components/footer.js';
@@ -14,7 +14,29 @@ import { Container, Row, Col, Button, Form } from 'react-bootstrap';
 
 import Link from 'next/link';
 
+function useSocket(url) {
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const socketIo = io(url);
+
+    setSocket(socketIo);
+
+    function cleanup() {
+      socketIo.disconnect();
+    }
+    return cleanup;
+
+    // should only run once and not on every re-render,
+    // so pass an empty array
+  }, []);
+
+  return socket;
+}
+
 export default function MultiGame() {
+  const socket = useSocket('http://localhost:5000');
+
   const Player = (url) => (
     <AudioPlayer
       autoPlay
@@ -24,11 +46,21 @@ export default function MultiGame() {
     />
   );
 
+  // fetched state to prevent over-fetching data
+  const [fetched, setFetched] = React.useState(false);
+
+  // store tracks from backend api
+  const [tracks, setTracks] = React.useState(null);
+
+  // state to update track
+  const [currentTrack, setCurrentTrack] = React.useState(0);
+
   const [songName, setSongName] = React.useState(null);
   const [correctBanner, setCorrectBanner] = React.useState('');
   const [preview, setPreview] = React.useState(null);
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
+  const [count, setCount] = useState([1]);
 
   const handleGuessChange = (e) => {
     setGuess(e.target.value);
@@ -38,10 +70,13 @@ export default function MultiGame() {
     e.preventDefault();
     addToChatLog(guess);
     if (guess.trim().toLowerCase() === songName.toLowerCase()) {
-      // alert('Correct!');
       setCorrectBanner('Correct!');
+
+      // TODO: add game finish page
+      if (currentTrack < tracks.length - 1) {
+        setCurrentTrack(currentTrack + 1);
+      }
     } else {
-      // alert('Wrong!');
       setCorrectBanner('False! Try Again!');
     }
     setGuess('');
@@ -55,31 +90,49 @@ export default function MultiGame() {
       text: text,
     };
     setChatLog([...chatLog, guess]);
+    setCount([...count, 1]);
+
+    socket.emit('chat', {
+      name: 'Broski',
+      isMyself: false,
+      time: '12:47',
+      text: text,
+    });
   };
 
-  React.useEffect(() => {
-    const socket = io('http://localhost:5000');
+  useEffect(() => {
+    if (!fetched) {
+      fetchData();
+    }
 
-    socket.on('message', (message) => {
-      alert(message);
-    });
+    // Don't change tracks upon initial render
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
 
-    fetchData();
+    if (socket) {
+      socket.on('chat', (data) => {
+        setChatLog([...chatLog, data]);
+      });
+    }
+  }, [socket, chatLog, currentTrack]);
 
-    // closes the connection when the component disappears from the DOM
-    return () => socket.disconnect();
-  }, []);
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
+  };
 
   async function fetchData() {
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/spotify/gettrack'
+        'http://localhost:5000/api/spotify/initializeGameState'
       );
       const data = JSON.parse(response.data);
       console.log(data);
-      setSongName(data.name);
-      setPreview(data.preview);
-      console.log(preview);
+      setTracks(data.tracks);
+      setSongName(data.tracks[currentTrack].name);
+      setPreview(data.tracks[currentTrack].preview);
+      setFetched(true);
     } catch (err) {
       console.error(err);
     }
@@ -122,6 +175,11 @@ export default function MultiGame() {
                       marginBottom: '1rem',
                     }}
                   ></img>
+                  <Button color='primary' disabled>
+                    {!tracks
+                      ? 'Initializing Game State'
+                      : `Round ${currentTrack + 1}`}
+                  </Button>
                   <AudioPlayer src={preview} />
                 </Col>
               </Row>

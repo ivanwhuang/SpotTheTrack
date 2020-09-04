@@ -25,15 +25,13 @@ router.get('/test', async (req, res) => {
 
 // NOTE: DEPRECATED--USE api/spotify/initializeGameState
 // @route   GET api/spotify/gettrack
-// @desc    Returns the name and preview url of a spotify track 
+// @desc    Returns the name and preview url of a spotify track
 //          with a random keyword from a predefined list
 // @access  Private
 router.get('/gettrack', (req, res) => {
-  
   // NOTE: prototype for choosing a random artist
-  let artists = Array("Said the sky", "illenium", "dabin", "Calvin Harris");
+  let artists = Array('Said the sky', 'illenium', 'dabin', 'Calvin Harris');
   let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
-  console.log(rand_keyword);
 
   let limit = '20';
   spotify.search(
@@ -48,24 +46,23 @@ router.get('/gettrack', (req, res) => {
       }
 
       let tracksReceived = data['tracks']['items'];
-      let tracks = []
+      let tracks = [];
       for (let idx = 0; idx < limit; idx++) {
         if (tracksReceived[idx]['preview_url'] !== null) {
           let name = data['tracks']['items'][idx]['name'].toString();
-          let filteredName = name.split("(")[0].trim();
+          let filteredName = name.split('(')[0].trim();
           let track = {
-            "name": filteredName,
-            "preview": tracksReceived[idx]['preview_url'],
-          }
+            name: filteredName,
+            preview: tracksReceived[idx]['preview_url'],
+          };
           tracks.push(track);
         }
       }
 
       res.json(
-        JSON.stringify(
-        {
-          "name": tracks[0].name,
-          "preview": tracks[0].preview,
+        JSON.stringify({
+          name: tracks[0].name,
+          preview: tracks[0].preview,
         })
       );
     }
@@ -77,11 +74,9 @@ router.get('/gettrack', (req, res) => {
 //          to be played
 // @access  Private
 router.get('/initializeGameState', (req, res) => {
-  
   // NOTE: prototype for choosing a random artist
-  let artists = Array("Said the sky", "illenium", "dabin", "Calvin Harris");
+  let artists = Array('Said the sky', 'illenium', 'dabin', 'Calvin Harris');
   let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
-  console.log(rand_keyword);
 
   let limit = '20';
   spotify.search(
@@ -96,23 +91,22 @@ router.get('/initializeGameState', (req, res) => {
       }
 
       let tracksReceived = data['tracks']['items'];
-      let tracks = []
+      let tracks = [];
       for (let idx = 0; idx < limit; idx++) {
         if (tracksReceived[idx]['preview_url'] !== null) {
           let name = data['tracks']['items'][idx]['name'].toString();
-          let filteredName = name.split("(")[0].trim();
+          let filteredName = name.split('(')[0].trim();
           let track = {
-            "name": filteredName,
-            "preview": tracksReceived[idx]['preview_url'],
-          }
+            name: filteredName,
+            preview: tracksReceived[idx]['preview_url'],
+          };
           tracks.push(track);
         }
       }
 
       res.json(
-        JSON.stringify(
-        {
-          "tracks": tracks,
+        JSON.stringify({
+          tracks: tracks,
         })
       );
     }

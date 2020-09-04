@@ -20,9 +20,12 @@ const io = socketio(server);
 io.on('connection', (socket) => {
   console.log('New websocket connection: ' + socket.id);
 
-  socket.emit('message', 'We hope you enjoy SpotTheTrack!');
+  socket.on('chat', (data) => {
+    socket.broadcast.emit('chat', data);
+  });
 
   socket.on('disconnect', () => {
+    console.log('Websocket ' + socket.id + ' has left.');
     io.emit('message', 'A User has left');
   });
 });
