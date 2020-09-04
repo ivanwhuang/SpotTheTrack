@@ -23,9 +23,18 @@ export default function SoloGame() {
     />
   );
 
+  // fetched state to prevent over-fetching data
+  const [fetched, setFetched] = React.useState(false);
+
+  // store tracks from backend api
+  const [tracks, setTracks] = React.useState(null);
+
+  // state to update track
+  const [currentTrack, setCurrentTrack] = React.useState(0);
   const [songName, setSongName] = React.useState(null);
-  const [correctBanner, setCorrectBanner] = React.useState('');
   const [preview, setPreview] = React.useState(null);
+
+  const [correctBanner, setCorrectBanner] = React.useState('');
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
 
@@ -39,6 +48,11 @@ export default function SoloGame() {
     if (guess.trim().toLowerCase() === songName.toLowerCase()) {
       // alert('Correct!');
       setCorrectBanner('Correct!');
+
+      // TODO: add game finish page
+      if (currentTrack < tracks.length-1) {
+        setCurrentTrack(currentTrack + 1);
+      }
     } else {
       // alert('Wrong!');
       setCorrectBanner('False! Try Again!');
@@ -56,23 +70,34 @@ export default function SoloGame() {
     setChatLog([...chatLog, guess]);
   };
 
-  React.useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await axios.get(
-          'http://localhost:5000/api/spotify/gettrack'
-        );
-        const data = JSON.parse(response.data);
-        console.log(data);
-        setSongName(data.name);
-        setPreview(data.preview);
-        console.log(preview);
-      } catch (err) {
-        console.error(err);
-      }
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
+  };
+
+  async function fetchData() {
+    try {
+      const response = await axios.get('http://localhost:5000/api/spotify/initializeGameState');
+      const data = JSON.parse(response.data);
+      console.log(data);
+      setTracks(data.tracks);
+      setSongName(data.tracks[currentTrack].name);
+      setPreview(data.tracks[currentTrack].preview);
+      setFetched(true);
+    } catch (err) {
+      console.error(err);
     }
-    fetchData();
-  }, []);
+  }
+
+  React.useEffect(() => {
+    if (!fetched) {
+      fetchData();
+    }
+
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
+  }, [currentTrack]);
 
   return (
     <div>
@@ -111,6 +136,9 @@ export default function SoloGame() {
                       marginBottom: '1rem',
                     }}
                   ></img>
+                  <Button color="primary" disabled>
+                    { !tracks ? 'Initializing Game State' : `Round ${currentTrack + 1}` }
+                  </Button>
                   <AudioPlayer src={preview} />
                 </Col>
               </Row>

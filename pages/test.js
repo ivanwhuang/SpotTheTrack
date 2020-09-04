@@ -21,6 +21,11 @@ export default function Test() {
     />
   );
 
+  const [fetched, setFetched] = React.useState(false);
+
+  const [tracks, setTracks] = React.useState(null);
+  const [currentTrack, setCurrentTrack] = React.useState(0);
+
   const [songName, setSongName] = React.useState(null);
   const [preview, setPreview] = React.useState(null);
 
@@ -38,33 +43,53 @@ export default function Test() {
     console.log(formData);
     if (formData.guess.toLowerCase() === songName.toLowerCase()) {
       console.log("Correct!");
+      console.log(currentTrack);
+      setCurrentTrack(currentTrack + 1);
+      
     }
   };
 
   // axios api call to update songName and preview
+  async function fetchData() {
+    try {
+      const response = await axios.get('http://localhost:5000/api/spotify/initializeGameState');
+      const data = JSON.parse(response.data);
+      console.log(data);
+      setTracks(data.tracks);
+      setSongName(data.tracks[currentTrack].name);
+      setPreview(data.tracks[currentTrack].preview);
+      setFetched(true);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
+  };
+
   React.useEffect( () => {
-    async function fetchData() {
-      try {
-        const response = await axios.get('http://localhost:5000/api/spotify/gettrack');
-        const data = JSON.parse(response.data);
-        console.log(data);
-        setSongName(data.name);
-        setPreview(data.preview);
-        console.log(preview);
-      } catch (err) {
-        console.error(err);
-      }
-    } 
-    fetchData();
-  }, []);
+    if (!fetched) {
+      fetchData();
+    }
+
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
+    
+  }, [currentTrack]);
 
   return (
     <div>
+      <Button color="primary" disabled>
+        { !tracks ? 'Initializing Game State' : `Round ${currentTrack + 1}` }
+      </Button>
       <AudioPlayer src={ preview } />
 
       <Link href="/"> 
-        <Button color="primary">
-          { !songName ? 'Loading song name..' : `${songName}` }
+        <Button color="secondary">
+          { !tracks ? 'Loading song name..' : `${songName}` }
         </Button>
       </Link>
 

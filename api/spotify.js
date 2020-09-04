@@ -23,6 +23,7 @@ router.get('/test', async (req, res) => {
   }
 });
 
+// NOTE: DEPRECATED--USE api/spotify/initializeGameState
 // @route   GET api/spotify/gettrack
 // @desc    Returns the name and preview url of a spotify track 
 //          with a random keyword from a predefined list
@@ -33,26 +34,85 @@ router.get('/gettrack', (req, res) => {
   let artists = Array("Said the sky", "illenium", "dabin", "Calvin Harris");
   let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
   console.log(rand_keyword);
+
+  let limit = '20';
   spotify.search(
     {
       type: 'track',
       query: `${rand_keyword}`,
-      limit: '1',
+      limit: limit,
     },
     function (err, data) {
       if (err) {
         return console.log('Error occured:' + err);
       }
-      // console.log(data['tracks']['items'][0]['preview_url']);
-      let name = data['tracks']['items'][0]['name'].toString();
-      let filteredName = name.split("(");
-      console.log(name, filteredName);
-      let preview = data['tracks']['items'][0]['preview_url'];
+
+      let tracksReceived = data['tracks']['items'];
+      let tracks = []
+      for (let idx = 0; idx < limit; idx++) {
+        if (tracksReceived[idx]['preview_url'] !== null) {
+          let name = data['tracks']['items'][idx]['name'].toString();
+          let filteredName = name.split("(")[0].trim();
+          let track = {
+            "name": filteredName,
+            "preview": tracksReceived[idx]['preview_url'],
+          }
+          tracks.push(track);
+        }
+      }
+
       res.json(
         JSON.stringify(
         {
-          "name": filteredName[0].trim(),
-          "preview": preview,
+          "name": tracks[0].name,
+          "preview": tracks[0].preview,
+        })
+      );
+    }
+  );
+});
+
+// @route   GET api/spotify/initializeGameState
+// @desc    Returns a list of tracks necessary for the game
+//          to be played
+// @access  Private
+router.get('/initializeGameState', (req, res) => {
+  
+  // NOTE: prototype for choosing a random artist
+  let artists = Array("Said the sky", "illenium", "dabin", "Calvin Harris");
+  let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
+  console.log(rand_keyword);
+
+  let limit = '20';
+  spotify.search(
+    {
+      type: 'track',
+      query: `${rand_keyword}`,
+      limit: limit,
+    },
+    function (err, data) {
+      if (err) {
+        return console.log('Error occured:' + err);
+      }
+
+      let tracksReceived = data['tracks']['items'];
+      let tracks = []
+      for (let idx = 0; idx < limit; idx++) {
+        if (tracksReceived[idx]['preview_url'] !== null) {
+          let name = data['tracks']['items'][idx]['name'].toString();
+          let filteredName = name.split("(")[0].trim();
+          let track = {
+            "name": filteredName,
+            "preview": tracksReceived[idx]['preview_url'],
+          }
+          tracks.push(track);
+        }
+      }
+
+      res.json(
+        JSON.stringify(
+        {
+          "tracks": tracks,
         })
       );
     }
