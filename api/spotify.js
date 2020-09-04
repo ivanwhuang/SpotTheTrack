@@ -43,12 +43,16 @@ router.get('/gettrack', (req, res) => {
       if (err) {
         return console.log('Error occured:' + err);
       }
-      console.log(data['tracks']['items'][0]['preview_url']);
+      // console.log(data['tracks']['items'][0]['preview_url']);
+      let name = data['tracks']['items'][0]['name'].toString();
+      let filteredName = name.split("(");
+      console.log(name, filteredName);
+      let preview = data['tracks']['items'][0]['preview_url'];
       res.json(
         JSON.stringify(
         {
-          "name": data['tracks']['items'][0]['name'],
-          "preview": data['tracks']['items'][0]['preview_url']
+          "name": filteredName[0].trim(),
+          "preview": preview,
         })
       );
     }

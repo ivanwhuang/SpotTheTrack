@@ -1,11 +1,17 @@
 import { Button } from '@material-ui/core';
 import Link from 'next/link';
 import axios from 'axios';
-import React from 'react';
+import React, { useRef } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
+import { Form } from 'react-bootstrap';
+
+const initialFormData = Object.freeze({
+  guess: "",
+});
 
 export default function Test() {
 
+  // player hook
   const Player = (url) => (
     <AudioPlayer
       autoPlay
@@ -18,6 +24,24 @@ export default function Test() {
   const [songName, setSongName] = React.useState(null);
   const [preview, setPreview] = React.useState(null);
 
+  const [formData, updateFormData] = React.useState(initialFormData);
+
+  const handleChange = (event) =>  {
+    updateFormData({
+      ...formData,
+      [event.target.name]: event.target.value.trim()
+    });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(formData);
+    if (formData.guess.toLowerCase() === songName.toLowerCase()) {
+      console.log("Correct!");
+    }
+  };
+
+  // axios api call to update songName and preview
   React.useEffect( () => {
     async function fetchData() {
       try {
@@ -37,11 +61,23 @@ export default function Test() {
   return (
     <div>
       <AudioPlayer src={ preview } />
+
       <Link href="/"> 
         <Button color="primary">
           { !songName ? 'Loading song name..' : `${songName}` }
         </Button>
       </Link>
+
+      <div>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Guess Answer: 
+            <input name="guess" onChange={handleChange} />
+          </label>
+          <Button color="primary" onClick={handleSubmit}>Submit</Button>
+        </form>
+      </div>
+      
     </div>
   );
 }

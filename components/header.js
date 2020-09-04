@@ -1,7 +1,7 @@
 import Head from 'next/head';
 
 import { Navbar, Nav } from 'react-bootstrap';
-import Link from 'next/Link';
+import Link from 'next/link';
 
 export default function Header() {
     return (
