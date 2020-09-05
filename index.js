@@ -32,7 +32,6 @@ const setIntervalX = (callback, delay, repetitions) => {
 io.on('connection', (socket) => {
   console.log('New websocket connection: ' + socket.id);
 
-<<<<<<< HEAD
   socket.on('createRoom', () => {
     // Generates a new unique id for the room
     newRoom = uuid.generate();
@@ -44,10 +43,9 @@ io.on('connection', (socket) => {
     socket.join(room);
     socket.broadcast.to(room).emit('newUser', name);
   });
-=======
+
   setIntervalX( 
     () => emitRemainingTime(socket, Math.floor(new Date() / 1000)), 1000, 30);
->>>>>>> small fixes and server-side timer prototype
 
   socket.on('chat', (data) => {
     socket.broadcast.emit('chat', data);
