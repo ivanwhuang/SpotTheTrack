@@ -18,9 +18,21 @@ const server = app.listen(PORT, () =>
 );
 const io = socketio(server);
 
+const setIntervalX = (callback, delay, repetitions) => {
+  let x = 0;
+  let interval = setInterval( () => {
+    callback();
+
+    if (++x === repetitions) {
+      clearInterval(interval);
+    }
+  }, delay);
+};
+
 io.on('connection', (socket) => {
   console.log('New websocket connection: ' + socket.id);
 
+<<<<<<< HEAD
   socket.on('createRoom', () => {
     // Generates a new unique id for the room
     newRoom = uuid.generate();
@@ -32,6 +44,10 @@ io.on('connection', (socket) => {
     socket.join(room);
     socket.broadcast.to(room).emit('newUser', name);
   });
+=======
+  setIntervalX( 
+    () => emitRemainingTime(socket, Math.floor(new Date() / 1000)), 1000, 30);
+>>>>>>> small fixes and server-side timer prototype
 
   socket.on('chat', (data) => {
     socket.broadcast.emit('chat', data);
@@ -42,3 +58,15 @@ io.on('connection', (socket) => {
     io.emit('message', 'A User has left');
   });
 });
+
+const emitRemainingTime = (socket, time) => {
+  const currentEpochTime = Math.floor(new Date() / 1000);
+  const endEpochTime = time + 30;
+
+  let response = {
+    "current_time": currentEpochTime,
+    "end_time": endEpochTime,
+    "socket_id": socket.id,
+  }
+  socket.broadcast.emit('time', JSON.stringify(response));
+};
