@@ -1,11 +1,45 @@
+import React, { useState } from 'react';
+
 import Header from '../components/header.js';
 import Footer from '../components/footer.js';
 
 import Link from 'next/link';
 
-import { Container, Row, Col, Button, Form } from 'react-bootstrap';
+import { useRouter } from 'next/router';
+
+import { Container, Row, Col, Button, Form, Modal } from 'react-bootstrap';
 
 export default function Home() {
+  const router = useRouter();
+
+  const [showModal, setShowModal] = useState(false);
+  const [room, setRoom] = useState('');
+
+  const handleHostSubmit = (e) => {
+    e.preventDefault();
+    router.push('/lobby');
+  };
+
+  const handleJoinSubmit = (e) => {
+    e.preventDefault();
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const handleRoomChange = (e) => {
+    setRoom(e.target.value);
+  };
+
+  const handleSubmitRoom = (e) => {
+    e.preventDefault();
+    if (room) {
+      router.push('/lobby?room=' + room);
+    }
+  };
+
   return (
     <div>
       <Header />
@@ -16,49 +50,31 @@ export default function Home() {
               <h1 className='intro-text'>Can you SpotTheTrack?</h1>
             </Col>
             <Col lg={3} style={{}}>
-              <Form>
-                <Form.Group controlId='nameForRoom' className='landing-button'>
-                  <Form.Control type='text' placeholder='Name' size='lg' />
-                </Form.Group>
-                <Link href='/#'>
-                  <Button className='landing-button' size='lg' variant='info'>
-                    Host A Game
-                  </Button>
-                </Link>
-                <Link href='/multiGame'>
-                  <Button
-                    className='landing-button'
-                    size='lg'
-                    variant='secondary'
-                  >
-                    Find A Game
-                  </Button>
-                </Link>
-                <Link href='/soloGame'>
-                  <Button
-                    className='landing-button'
-                    size='lg'
-                    variant='success'
-                  >
-                    Play By Myself
-                  </Button>
-                </Link>
-              </Form>
+              <Button
+                className='landing-button'
+                size='lg'
+                variant='info'
+                type='submit'
+                onClick={handleHostSubmit}
+              >
+                Host A Game
+              </Button>
+              <Button
+                className='landing-button'
+                size='lg'
+                variant='secondary'
+                type='submit'
+                onClick={handleJoinSubmit}
+              >
+                Find A Game
+              </Button>
+              <Link href='/soloGame'>
+                <Button className='landing-button' size='lg' variant='success'>
+                  Play By Myself
+                </Button>
+              </Link>
             </Col>
           </Row>
-          {/* <div
-                        style={{
-                            color: 'white',
-                            'font-size': '50px',
-                            'margin-top': '2rem',
-                        }}
-                    >
-                        <p style={{ 'text-align': 'center' }}>
-                            <i class='fa fa-arrow-down' aria-hidden='true'></i>
-                            &nbsp; Rules &nbsp;
-                            <i class='fa fa-arrow-down' aria-hidden='true'></i>
-                        </p>
-                    </div> */}
         </Container>
       </div>
       <div className='landing-rules-wrapper'>
@@ -71,7 +87,7 @@ export default function Home() {
                 alt='rules1'
                 style={{ width: '90%' }}
               ></img>
-              <div style={{ 'margin-top': '1rem' }}>Each Round ....</div>
+              <div style={{ marginTop: '1rem' }}>Each Round ....</div>
             </Col>
             <Col className='rule-col'>
               <img
@@ -79,7 +95,7 @@ export default function Home() {
                 alt='rules1'
                 style={{ width: '90%' }}
               ></img>
-              <div style={{ 'margin-top': '1rem' }}>
+              <div style={{ marginTop: '1rem' }}>
                 Try to guess the name of the song
               </div>
             </Col>
@@ -91,7 +107,7 @@ export default function Home() {
                 alt='rules1'
                 style={{ width: '90%' }}
               ></img>
-              <div style={{ 'margin-top': '1rem' }}>
+              <div style={{ marginTop: '1rem' }}>
                 Clues will be given out periodically.
               </div>
             </Col>
@@ -101,7 +117,7 @@ export default function Home() {
                 alt='rules1'
                 style={{ width: '90%' }}
               ></img>
-              <div style={{ 'margin-top': '1rem' }}>
+              <div style={{ marginTop: '1rem' }}>
                 Winner goes to player with the most points
               </div>
             </Col>
@@ -109,6 +125,29 @@ export default function Home() {
         </Container>
       </div>
       <Footer />
+      <Form>
+        <Modal show={showModal} onHide={handleCloseModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Join By Room ID</Modal.Title>
+          </Modal.Header>
+          <Form.Group controlId='nameForRoom' className='landing-button'>
+            <Form.Control
+              type='text'
+              placeholder='Room ID'
+              size='lg'
+              onChange={handleRoomChange}
+            />
+          </Form.Group>
+          <Modal.Footer>
+            <Button variant='secondary' onClick={handleSubmitRoom}>
+              Enter Game Lobby
+            </Button>
+            <Button variant='primary' onClick={handleCloseModal}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </Form>
     </div>
   );
 }

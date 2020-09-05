@@ -62,24 +62,42 @@ export default function MultiGame() {
   const [chatLog, setChatLog] = useState([]);
   const [count, setCount] = useState([1]);
 
-  const handleGuessChange = (e) => {
-    setGuess(e.target.value);
-  };
-
-  const handleGuessSubmit = (e) => {
-    e.preventDefault();
-    addToChatLog(guess);
-    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
-      setCorrectBanner('Correct!');
-
-      // TODO: add game finish page
-      if (currentTrack < tracks.length - 1) {
-        setCurrentTrack(currentTrack + 1);
-      }
-    } else {
-      setCorrectBanner('False! Try Again!');
+  useEffect(() => {
+    if (!fetched) {
+      fetchData();
     }
-    setGuess('');
+
+    // Don't change tracks upon initial render
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
+
+    if (socket) {
+      socket.on('chat', (data) => {
+        setChatLog([...chatLog, data]);
+      });
+    }
+  }, [socket, chatLog, currentTrack]);
+
+  async function fetchData() {
+    try {
+      const response = await axios.get(
+        'http://localhost:5000/api/spotify/initializeGameState'
+      );
+      const data = JSON.parse(response.data);
+      console.log(data);
+      setTracks(data.tracks);
+      setSongName(data.tracks[currentTrack].name);
+      setPreview(data.tracks[currentTrack].preview);
+      setFetched(true);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
   };
 
   const addToChatLog = (text) => {
@@ -100,43 +118,25 @@ export default function MultiGame() {
     });
   };
 
-  useEffect(() => {
-    if (!fetched) {
-      fetchData();
-    }
-
-    // Don't change tracks upon initial render
-    if (currentTrack > 0) {
-      updateToNextTrack();
-    }
-
-    if (socket) {
-      socket.on('chat', (data) => {
-        setChatLog([...chatLog, data]);
-      });
-    }
-  }, [socket, chatLog, currentTrack]);
-
-  const updateToNextTrack = () => {
-    setPreview(tracks[currentTrack].preview);
-    setSongName(tracks[currentTrack].name);
+  const handleGuessChange = (e) => {
+    setGuess(e.target.value);
   };
 
-  async function fetchData() {
-    try {
-      const response = await axios.get(
-        'http://localhost:5000/api/spotify/initializeGameState'
-      );
-      const data = JSON.parse(response.data);
-      console.log(data);
-      setTracks(data.tracks);
-      setSongName(data.tracks[currentTrack].name);
-      setPreview(data.tracks[currentTrack].preview);
-      setFetched(true);
-    } catch (err) {
-      console.error(err);
+  const handleGuessSubmit = (e) => {
+    e.preventDefault();
+    addToChatLog(guess);
+    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
+      setCorrectBanner('Correct!');
+
+      // TODO: add game finish page
+      if (currentTrack < tracks.length - 1) {
+        setCurrentTrack(currentTrack + 1);
+      }
+    } else {
+      setCorrectBanner('False! Try Again!');
     }
-  }
+    setGuess('');
+  };
 
   return (
     <div>
@@ -196,7 +196,6 @@ export default function MultiGame() {
                     </span>
                   </div>
                 </header>
-
                 <main className='msger-chat'>
                   {chatLog.map((guess) => (
                     <ChatBubble
@@ -208,7 +207,6 @@ export default function MultiGame() {
                     />
                   ))}
                 </main>
-
                 <form className='msger-inputarea' onSubmit={handleGuessSubmit}>
                   <input
                     type='text'

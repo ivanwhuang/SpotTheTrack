@@ -38,26 +38,35 @@ export default function SoloGame() {
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
 
-  const handleGuessChange = (e) => {
-    setGuess(e.target.value);
-  };
-
-  const handleGuessSubmit = (e) => {
-    e.preventDefault();
-    addToChatLog(guess);
-    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
-      // alert('Correct!');
-      setCorrectBanner('Correct!');
-
-      // TODO: add game finish page
-      if (currentTrack < tracks.length-1) {
-        setCurrentTrack(currentTrack + 1);
-      }
-    } else {
-      // alert('Wrong!');
-      setCorrectBanner('False! Try Again!');
+  React.useEffect(() => {
+    if (!fetched) {
+      fetchData();
     }
-    setGuess('');
+
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
+  }, [currentTrack]);
+
+  async function fetchData() {
+    try {
+      const response = await axios.get(
+        'http://localhost:5000/api/spotify/initializeGameState'
+      );
+      const data = JSON.parse(response.data);
+      console.log(data);
+      setTracks(data.tracks);
+      setSongName(data.tracks[currentTrack].name);
+      setPreview(data.tracks[currentTrack].preview);
+      setFetched(true);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
   };
 
   const addToChatLog = (text) => {
@@ -70,34 +79,27 @@ export default function SoloGame() {
     setChatLog([...chatLog, guess]);
   };
 
-  const updateToNextTrack = () => {
-    setPreview(tracks[currentTrack].preview);
-    setSongName(tracks[currentTrack].name);
+  const handleGuessChange = (e) => {
+    setGuess(e.target.value);
   };
 
-  async function fetchData() {
-    try {
-      const response = await axios.get('http://localhost:5000/api/spotify/initializeGameState');
-      const data = JSON.parse(response.data);
-      console.log(data);
-      setTracks(data.tracks);
-      setSongName(data.tracks[currentTrack].name);
-      setPreview(data.tracks[currentTrack].preview);
-      setFetched(true);
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const handleGuessSubmit = (e) => {
+    e.preventDefault();
+    addToChatLog(guess);
+    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
+      // alert('Correct!');
+      setCorrectBanner('Correct!');
 
-  React.useEffect(() => {
-    if (!fetched) {
-      fetchData();
+      // TODO: add game finish page
+      if (currentTrack < tracks.length - 1) {
+        setCurrentTrack(currentTrack + 1);
+      }
+    } else {
+      // alert('Wrong!');
+      setCorrectBanner('False! Try Again!');
     }
-
-    if (currentTrack > 0) {
-      updateToNextTrack();
-    }
-  }, [currentTrack]);
+    setGuess('');
+  };
 
   return (
     <div>
@@ -136,8 +138,10 @@ export default function SoloGame() {
                       marginBottom: '1rem',
                     }}
                   ></img>
-                  <Button color="primary" disabled>
-                    { !tracks ? 'Initializing Game State' : `Round ${currentTrack + 1}` }
+                  <Button color='primary' disabled>
+                    {!tracks
+                      ? 'Initializing Game State'
+                      : `Round ${currentTrack + 1}`}
                   </Button>
                   <AudioPlayer src={preview} />
                 </Col>
