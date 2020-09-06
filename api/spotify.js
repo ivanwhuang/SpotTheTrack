@@ -72,7 +72,7 @@ router.get('/gettrack', (req, res) => {
 // @route   GET api/spotify/initializeGameState
 // @desc    Returns a list of tracks necessary for the game
 //          to be played
-// @access  Private
+// @access  Public
 router.get('/initializeGameState', (req, res) => {
   // NOTE: prototype for choosing a random artist
   let artists = Array('Said the sky', 'illenium', 'dabin', 'Calvin Harris');
@@ -111,6 +111,31 @@ router.get('/initializeGameState', (req, res) => {
       );
     }
   );
+});
+
+// @route   GET api/spotify/searchArtist
+// @desc    Returns a list of 3 artists upon a search keyword from Spotify
+// @access  Public
+router.get('/searchArtist/:keyword', async (req, res) => {
+  try {
+    let limit = 3;
+    let artists = [];
+
+    const result = await spotify.search({
+      type: 'artist',
+      query: req.params.keyword,
+      limit: limit,
+    });
+
+    for (artist of result['artists']['items']) {
+      artists.push(artist['name']);
+    }
+
+    res.json(artists);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;

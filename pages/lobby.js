@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import Header from '../components/header.js';
-import Footer from '../components/footer.js';
-
 import axios from 'axios';
 import io from 'socket.io-client';
 
@@ -114,7 +111,6 @@ export default function Lobby() {
 
   return (
     <div>
-      <Header />
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
@@ -133,7 +129,6 @@ export default function Lobby() {
           </Row>
         </Container>
       </div>
-      <Footer />
       <Form>
         <Modal
           show={showModal}

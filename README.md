@@ -1,18 +1,18 @@
-### SpotTheTrack
+# SpotTheTrack
 
-Can you spot the track?
+Can you SpotTheTrack?
 
 ## Built With
 
 ### Frontend
 
--   [React.js](https://reactjs.org/) - Frontend library
--   [Next.js](https://nextjs.org/) - React Framework
+- [React.js](https://reactjs.org/) - Frontend library
+- [Next.js](https://nextjs.org/) - React Framework
 
 ### Backend
 
--   [Node.js](https://nodejs.org/en/) - Javascript Runtime Environment
--   [Express](https://expressjs.com/) - Web Application Framework
+- [Node.js](https://nodejs.org/en/) - Javascript Runtime Environment
+- [Express](https://expressjs.com/) - Web Application Framework
 
 ## Author
 

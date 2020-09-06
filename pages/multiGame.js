@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import Header from '../components/header.js';
-import Footer from '../components/footer.js';
 // import GameChat from '../components/gameChat.js';
 import ChatBubble from '../components/chatBubble.js';
 
@@ -140,7 +138,6 @@ export default function MultiGame() {
 
   return (
     <div>
-      <Header />
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
@@ -228,8 +225,6 @@ export default function MultiGame() {
           </Row>
         </Container>
       </div>
-
-      <Footer />
     </div>
   );
 }

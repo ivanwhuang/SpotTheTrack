@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 
-import Header from '../components/header.js';
-import Footer from '../components/footer.js';
-
 import Link from 'next/link';
 
 import { useRouter } from 'next/router';
@@ -42,7 +39,6 @@ export default function Home() {
 
   return (
     <div>
-      <Header />
       <div className='landing-background'>
         <Container className='landing-main'>
           <Row>
@@ -124,7 +120,6 @@ export default function Home() {
           </Row>
         </Container>
       </div>
-      <Footer />
       <Form>
         <Modal show={showModal} onHide={handleCloseModal}>
           <Modal.Header closeButton>

@@ -103,7 +103,6 @@ export default function SoloGame() {
 
   return (
     <div>
-      <Header />
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
@@ -193,8 +192,6 @@ export default function SoloGame() {
           </Row>
         </Container>
       </div>
-
-      <Footer />
     </div>
   );
 }
