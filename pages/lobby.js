@@ -45,7 +45,7 @@ export default function Lobby() {
 
   const [showModal, setShowModal] = useState(true);
   const [name, setName] = useState('');
-  // const [isHost, setIsHost] = useState(false);
+  const [isHost, setIsHost] = useState(false);
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
 
@@ -54,9 +54,22 @@ export default function Lobby() {
       socket.on('roomCode', (newRoom) => {
         setRoom(newRoom);
       });
-      socket.on('newUser', (name) => {
-        setPlayers([...players, name]);
-        console.log(name);
+
+      socket.on('newUser', (player) => {
+        setPlayers([...players, player.name]);
+      });
+
+      // update client info of players with server knowledge
+      socket.on('roomInfo', (serverPlayers) => {
+        console.log(name, serverPlayers);
+        let playersToAppend = serverPlayers.filter(serverPlayer => serverPlayer.name !== name);
+        setPlayers([...players, ...(playersToAppend.map((aPlayer) => aPlayer.name))]);
+      });
+
+      // remove disconnected player from client info
+      socket.on('userDisconnected', (playerName) => {
+        let filteredPlayers = players.filter(player => player !== playerName);
+        setPlayers(filteredPlayers);
       });
     }
   }, [socket, players]);
@@ -74,14 +87,30 @@ export default function Lobby() {
         // Not host
         socket.emit('joinRoom', { name, room });
         setRoom(room);
-        setPlayers([...players, name]);
       } else {
         // Host of room
-        socket.emit('createRoom');
-        setPlayers([...players, name]);
+        socket.emit('createRoom', name);
+        setIsHost(true);
       }
+      setPlayers([...players, name]);
     }
   };
+
+  // on button click start game
+  // need to send the following to server:
+  // - players
+  // - game settings
+  const handleStartGame = (e) => {
+    e.preventDefault();
+    let info = {
+      room,
+      settings: null,
+    };
+    if (isHost) {
+      socket.emit('gameStart', info);
+      // TODO: add functionality to transfer to game page
+    }
+  }
 
   return (
     <div>
@@ -130,6 +159,9 @@ export default function Lobby() {
           </Modal.Footer>
         </Modal>
       </Form>
+      <Button onClick={handleStartGame}>
+        Start Game
+      </Button>
     </div>
   );
 }
