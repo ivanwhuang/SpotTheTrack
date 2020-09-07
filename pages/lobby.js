@@ -35,6 +35,13 @@ function useSocket(url) {
   return socket;
 }
 
+function HostButton({ host, cb }) {
+  if (host) {
+    return <Button onClick={cb}>Start Game</Button>;
+  }
+  return null;
+}
+
 export default function Lobby() {
   const router = useRouter();
 
@@ -136,6 +143,7 @@ export default function Lobby() {
                 ))}
               </ListGroup>
             </Col>
+            <HostButton host={isHost} cb={handleStartGame} />
           </Row>
         </Container>
       </div>
@@ -164,9 +172,6 @@ export default function Lobby() {
           </Modal.Footer>
         </Modal>
       </Form>
-      <Button onClick={handleStartGame}>
-        Start Game
-      </Button>
     </div>
   );
 }

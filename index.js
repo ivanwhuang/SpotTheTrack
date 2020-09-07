@@ -142,7 +142,8 @@ io.on('connection', (socket) => {
               players = tmpRoomPlayers;
             }
 
-            if (players.find(player => player.socket_id === socket.id).host) {
+            if (players.find(player => player.socket_id === socket.id).host
+                && clients.length > 0) {
               players = players.filter(player => player.socket_id !== socket.id);
 
               // change host and tell client
