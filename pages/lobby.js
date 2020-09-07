@@ -45,9 +45,15 @@ export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
+  const [socketId, setSocketId] = useState('');
 
   useEffect(() => {
     if (socket) {
+      socket.on('connect', () => {
+        console.log(socket.id);
+        setSocketId(socket.id);
+      });
+
       socket.on('roomCode', (newRoom) => {
         setRoom(newRoom);
       });
@@ -59,7 +65,7 @@ export default function Lobby() {
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
         console.log(name, serverPlayers);
-        let playersToAppend = serverPlayers.filter(serverPlayer => serverPlayer.name !== name);
+        let playersToAppend = serverPlayers.filter(serverPlayer => serverPlayer.socket_id !== socketId);
         setPlayers([...players, ...(playersToAppend.map((aPlayer) => aPlayer.name))]);
       });
 
