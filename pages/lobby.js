@@ -62,6 +62,10 @@ export default function Lobby() {
         setPlayers([...players, player.name]);
       });
 
+      socket.on('changeHost', () => {
+        setIsHost(true);
+      });
+
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
         console.log(name, serverPlayers);
