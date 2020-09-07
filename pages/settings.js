@@ -17,7 +17,8 @@ import RangeSlider from 'react-bootstrap-range-slider';
 export default function Setting() {
   const [timer, setTimer] = useState(60);
   const [numRounds, setNumRounds] = useState(10);
-  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showToolTip, setShowToolTip] = useState('on');
+  const [showArtistModal, setShowArtistModal] = useState(false);
   const [artists, setArtists] = useState([]);
   const [artistKeyword, setArtistKeyword] = useState('');
   const [artistResults, setArtistResults] = useState([]);
@@ -26,20 +27,28 @@ export default function Setting() {
     setArtistKeyword(e.target.value);
   };
 
-  const handleSubmitArtistSearch = async (e) => {
-    e.preventDefault();
-    const response = await axios.get(
-      'http://localhost:5000/api/spotify/searchArtist/' + artistKeyword
-    );
-
-    setArtistResults(response.data);
-    setShowSearchModal(true);
+  const handleCloseArtistModal = (e) => {
+    setShowArtistModal(false);
+    setShowToolTip('off');
   };
 
-  const handleSubmitSearchModal = (e) => {
+  const handleSubmitArtistSearch = async (e) => {
+    e.preventDefault();
+    if (artistKeyword) {
+      const response = await axios.get(
+        'http://localhost:5000/api/spotify/searchArtist/' + artistKeyword
+      );
+      setArtistResults(response.data);
+      setShowToolTip('off');
+      setShowArtistModal(true);
+    }
+  };
+
+  const handleSubmitArtistModal = (e) => {
     e.preventDefault();
     setArtistResults([]);
-    setShowSearchModal(false);
+    setShowToolTip('off');
+    setShowArtistModal(false);
   };
 
   return (
@@ -47,16 +56,6 @@ export default function Setting() {
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
-            <Col>
-              <h2 style={{ color: 'white' }}>Room ID: Mumbo Jumbo</h2>
-              <ListGroup>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-              </ListGroup>
-            </Col>
             <Col>
               <h2 style={{ color: 'white' }}>Game Settings</h2>
               <div className='settings'>
@@ -71,8 +70,9 @@ export default function Setting() {
                         min={30}
                         max={120}
                         step={10}
+                        size='lg'
                         tooltipPlacement='top'
-                        tooltip='on'
+                        tooltip={showToolTip}
                         variant='info'
                         onChange={(changeEvent) =>
                           setTimer(changeEvent.target.value)
@@ -90,8 +90,9 @@ export default function Setting() {
                         min={5}
                         max={20}
                         step={1}
+                        size='lg'
                         tooltipPlacement='top'
-                        tooltip='on'
+                        tooltip={showToolTip}
                         variant='info'
                         onChange={(changeEvent) =>
                           setNumRounds(changeEvent.target.value)
@@ -115,6 +116,7 @@ export default function Setting() {
                       <Button
                         variant='info'
                         block
+                        type='submit'
                         onClick={handleSubmitArtistSearch}
                       >
                         Search
@@ -145,27 +147,27 @@ export default function Setting() {
               </div>
             </Col>
           </Row>
-          <Form>
-            <Modal show={showSearchModal} onHide={handleSubmitSearchModal}>
-              <Modal.Header>
-                <Modal.Title>Which artist?</Modal.Title>
-              </Modal.Header>
-              <Form.Group controlId='ArtistSearchModal'>
-                <ListGroup>
-                  {artistResults.map((artist) => (
-                    <ListGroup.Item variant='light'>{artist}</ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </Form.Group>
-              <Modal.Footer>
-                <Button variant='secondary' onClick={handleSubmitSearchModal}>
-                  Select Artist
-                </Button>
-              </Modal.Footer>
-            </Modal>
-          </Form>
         </Container>
       </div>
+      <Form>
+        <Modal show={showArtistModal} onHide={handleCloseArtistModal}>
+          <Modal.Header>
+            <Modal.Title>Which artist?</Modal.Title>
+          </Modal.Header>
+          <Form.Group controlId='ArtistSearchModal'>
+            <ListGroup>
+              {artistResults.map((artist) => (
+                <ListGroup.Item variant='light'>{artist.name}</ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Form.Group>
+          <Modal.Footer>
+            <Button variant='secondary' onClick={handleSubmitArtistModal}>
+              Select Artist
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </Form>
     </div>
   );
 }

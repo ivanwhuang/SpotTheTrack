@@ -119,19 +119,13 @@ router.get('/initializeGameState', (req, res) => {
 router.get('/searchArtist/:keyword', async (req, res) => {
   try {
     let limit = 3;
-    let artists = [];
-
     const result = await spotify.search({
       type: 'artist',
       query: req.params.keyword,
       limit: limit,
     });
 
-    for (artist of result['artists']['items']) {
-      artists.push(artist['name']);
-    }
-
-    res.json(artists);
+    res.json(result['artists']['items']);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
