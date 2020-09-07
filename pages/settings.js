@@ -8,6 +8,7 @@ import {
   Form,
   ListGroup,
   Modal,
+  Card,
 } from 'react-bootstrap';
 
 import axios from 'axios';
@@ -29,10 +30,10 @@ export default function Setting() {
 
   const handleCloseArtistModal = (e) => {
     setShowArtistModal(false);
-    setShowToolTip('off');
+    setShowToolTip('on');
   };
 
-  const handleSubmitArtistSearch = async (e) => {
+  const handleSubmitSearchArtist = async (e) => {
     e.preventDefault();
     if (artistKeyword) {
       const response = await axios.get(
@@ -44,11 +45,14 @@ export default function Setting() {
     }
   };
 
-  const handleSubmitArtistModal = (e) => {
-    e.preventDefault();
-    setArtistResults([]);
-    setShowToolTip('off');
-    setShowArtistModal(false);
+  const handleSubmitSelectArtist = (newArtist) => {
+    return (event) => {
+      event.preventDefault();
+      console.log(newArtist);
+      setArtists([...artists, newArtist]);
+      setShowToolTip('on');
+      setShowArtistModal(false);
+    };
   };
 
   return (
@@ -117,7 +121,7 @@ export default function Setting() {
                         variant='info'
                         block
                         type='submit'
-                        onClick={handleSubmitArtistSearch}
+                        onClick={handleSubmitSearchArtist}
                       >
                         Search
                       </Button>
@@ -150,20 +154,69 @@ export default function Setting() {
         </Container>
       </div>
       <Form>
-        <Modal show={showArtistModal} onHide={handleCloseArtistModal}>
-          <Modal.Header>
-            <Modal.Title>Which artist?</Modal.Title>
+        <Modal show={showArtistModal} onHide={handleCloseArtistModal} size='xl'>
+          <Modal.Header closeButton>
+            <Modal.Title>Which Artist?</Modal.Title>
           </Modal.Header>
-          <Form.Group controlId='ArtistSearchModal'>
-            <ListGroup>
-              {artistResults.map((artist) => (
-                <ListGroup.Item variant='light'>{artist.name}</ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Form.Group>
+          <Modal.Body style={{ backgroundColor: '#c6c6c6' }}>
+            <Form.Group controlId='ArtistSearchModal'>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
+                {artistResults.map((artist) => (
+                  <Card
+                    border='dark'
+                    key={artist['name']}
+                    style={{ width: '15rem', margin: '1rem' }}
+                  >
+                    <Card.Img
+                      src={
+                        artist['images'].length > 0
+                          ? artist['images'][0]['url']
+                          : '/images/placeholder.png'
+                      }
+                      style={{ height: '15rem' }}
+                    />
+
+                    <Card.Body>
+                      <Card.Title>
+                        <a></a>
+                        {artist['name']}
+                      </Card.Title>
+                      <Card.Text>
+                        <b>Genres:</b>
+                        <p style={{ marginBottom: '0' }}>
+                          {artist['genres'].length > 0
+                            ? artist['genres'].join(', ')
+                            : 'Unknown'}
+                        </p>
+                      </Card.Text>
+                    </Card.Body>
+                    <Card.Footer>
+                      <Button
+                        variant='info'
+                        block
+                        onClick={handleSubmitSelectArtist(artist['name'])}
+                      >
+                        Add to List
+                      </Button>
+                    </Card.Footer>
+                  </Card>
+                ))}
+              </div>
+            </Form.Group>
+          </Modal.Body>
           <Modal.Footer>
-            <Button variant='secondary' onClick={handleSubmitArtistModal}>
-              Select Artist
+            <Button
+              variant='secondary'
+              onClick={(event) => handleCloseArtistModal(event, artist['name'])}
+            >
+              Cancel
             </Button>
           </Modal.Footer>
         </Modal>
