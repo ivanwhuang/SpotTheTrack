@@ -35,6 +35,7 @@ io.on('connection', (socket) => {
     // construct host object
     let host = {
       "socket_id": socket.id,
+      "host": true,
       name,
       "score": 0,
     };
@@ -59,6 +60,7 @@ io.on('connection', (socket) => {
     // construct player object
     let player = {
       "socket_id": socket.id,
+      "host": false,
       name,
       "score": 0,
     };
@@ -139,7 +141,17 @@ io.on('connection', (socket) => {
             } else {
               players = tmpRoomPlayers;
             }
-            players = players.filter(player => player.socket_id !== socket.id);
+
+            if (players.find(player => player.socket_id === socket.id).host) {
+              players = players.filter(player => player.socket_id !== socket.id);
+
+              // change host and tell client
+              players[0].host = true;
+              io.to(players[0].socket_id).emit('changeHost');
+            } else {
+              players = players.filter(player => player.socket_id !== socket.id);
+            }
+            
             rooms[roomOfSocket[socket.id]] = players;
 
             delete roomOfSocket[socket.id];
