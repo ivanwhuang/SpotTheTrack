@@ -70,6 +70,11 @@
   color: #117a8b;
   text-decoration: none;
 }
+/* ----------------------- Lobby Page -------------------------*/
+.lobby-content {
+  background: #4b545c;
+  padding: 2rem 0;
+}
 
 /* ----------------------- Solo Game Page -------------------------*/
 .game-background {

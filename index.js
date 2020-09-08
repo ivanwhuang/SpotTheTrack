@@ -79,9 +79,13 @@ io.on('connection', (socket) => {
     io.in(room).emit('roomInfo', rooms[room]);
   });
 
-  socket.on('gameStart', (settings) => {
+  socket.on('prepareGame', (settings) => {
     console.log(settings);
     console.log(rooms[settings.room]);
+
+    // .... Do some prep work
+
+    io.in(settings.room).emit('gameStart');
   });
 
   setIntervalX(

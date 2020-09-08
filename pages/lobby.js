@@ -17,6 +17,7 @@ import {
   ListGroup,
   Modal,
 } from 'react-bootstrap';
+import MultiGame from '../components/multiGame';
 
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
@@ -54,6 +55,7 @@ export default function Lobby() {
     numRounds: 10,
     artists: [],
   });
+  const [gameStart, setGameStart] = useState(false);
 
   useEffect(() => {
     if (socket) {
@@ -73,6 +75,11 @@ export default function Lobby() {
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
         setPlayers(serverPlayers);
+      });
+
+      socket.on('gameStart', () => {
+        console.log('received game start msg');
+        setGameStart(true);
       });
     }
   }, [socket, players]);
@@ -118,87 +125,91 @@ export default function Lobby() {
     };
     console.log(info);
     if (isHost) {
-      socket.emit('gameStart', info);
+      socket.emit('prepareGame', info);
       // TODO: add functionality to transfer to game page
     }
   };
 
-  return (
-    <div>
-      <div className='game-background'>
-        <Container fluid style={{ padding: '0 2rem' }}>
-          <Row>
-            <Col>
-              <h1 style={{ color: 'white', marginBottom: '2rem' }}>
-                Game Lobby
-              </h1>
-              <h5 style={{ color: 'white' }}>Room ID:</h5>
-              <p style={{ color: 'white' }}>{room}</p>
-              <h5 style={{ color: 'white' }}>
-                Invite Link:{' '}
-                <Button onClick={copyInviteLink} variant='info' size='sm'>
-                  Copy Link
-                </Button>{' '}
-              </h5>
-              <p style={{ color: 'white' }}>
-                {`http://localhost:3000/lobby?room=${room}`}
-              </p>
+  if (!gameStart) {
+    return (
+      <div>
+        <div className='lobby-content'>
+          <Container fluid style={{ padding: '0 2rem' }}>
+            <Row>
+              <Col>
+                <h1 style={{ color: 'white', marginBottom: '2rem' }}>
+                  Game Lobby
+                </h1>
+                <h5 style={{ color: 'white' }}>Room ID:</h5>
+                <p style={{ color: 'white' }}>{room}</p>
+                <h5 style={{ color: 'white' }}>
+                  Invite Link:{' '}
+                  <Button onClick={copyInviteLink} variant='info' size='sm'>
+                    Copy Link
+                  </Button>{' '}
+                </h5>
+                <p style={{ color: 'white' }}>
+                  {`http://localhost:3000/lobby?room=${room}`}
+                </p>
 
-              <ListGroup style={{ padding: '1rem' }}>
-                <ListGroup.Item variant='dark'>
-                  <i className='fa fa-users' aria-hidden='true'></i> Players in
-                  Room:
-                </ListGroup.Item>
-                {players.map((player) => (
+                <ListGroup style={{ padding: '1rem' }}>
                   <ListGroup.Item variant='dark'>
-                    {player.name} {player.host && <b>[Host] </b>}
+                    <i className='fa fa-users' aria-hidden='true'></i> Players
+                    in Room:
                   </ListGroup.Item>
-                ))}
-              </ListGroup>
-              <div style={{ textAlign: 'center' }}>
-                {isHost && (
-                  <Button
-                    onClick={handleStartGame}
-                    variant='info'
-                    style={{ width: '30%' }}
-                  >
-                    <i className='fa fa-rocket' aria-hidden='true'></i> Start
-                    Game
-                  </Button>
-                )}
-              </div>
-            </Col>
-            <Col lg='6'>
-              <Settings isHost={isHost} updateSettings={updateSettings} />
-            </Col>
-          </Row>
-        </Container>
+                  {players.map((player) => (
+                    <ListGroup.Item variant='dark' key={player.socket_id}>
+                      {player.name} {player.host && <b>[Host] </b>}
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+                <div style={{ textAlign: 'center' }}>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      variant='info'
+                      style={{ width: '30%' }}
+                    >
+                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                      Game
+                    </Button>
+                  )}
+                </div>
+              </Col>
+              <Col lg='6'>
+                <Settings isHost={isHost} updateSettings={updateSettings} />
+              </Col>
+            </Row>
+          </Container>
+        </div>
+        <Form>
+          <Modal
+            show={showModal}
+            onHide={handleSubmitName}
+            backdrop='static'
+            keyboard={false}
+          >
+            <Modal.Header>
+              <Modal.Title>What is your name?</Modal.Title>
+            </Modal.Header>
+            <Form.Group controlId='nameForRoom' className='landing-button'>
+              <Form.Control
+                type='text'
+                placeholder='Name'
+                size='lg'
+                onChange={handleNameChange}
+              />
+            </Form.Group>
+            <Modal.Footer>
+              <Button variant='secondary' onClick={handleSubmitName}>
+                Enter Game Lobby
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </Form>
       </div>
-      <Form>
-        <Modal
-          show={showModal}
-          onHide={handleSubmitName}
-          backdrop='static'
-          keyboard={false}
-        >
-          <Modal.Header>
-            <Modal.Title>What is your name?</Modal.Title>
-          </Modal.Header>
-          <Form.Group controlId='nameForRoom' className='landing-button'>
-            <Form.Control
-              type='text'
-              placeholder='Name'
-              size='lg'
-              onChange={handleNameChange}
-            />
-          </Form.Group>
-          <Modal.Footer>
-            <Button variant='secondary' onClick={handleSubmitName}>
-              Enter Game Lobby
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </Form>
-    </div>
-  );
+    );
+  } else {
+    return <MultiGame />;
+  }
 }

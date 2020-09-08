@@ -144,7 +144,9 @@ export default function Setting({ isHost, updateSettings }) {
                 <ListGroup>
                   {artists.length > 0 ? (
                     artists.map((artist) => (
-                      <ListGroup.Item variant='light'>{artist}</ListGroup.Item>
+                      <ListGroup.Item variant='light' key={artist}>
+                        {artist}
+                      </ListGroup.Item>
                     ))
                   ) : (
                     <ListGroup.Item variant='light'>
