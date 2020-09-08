@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   Row,
@@ -14,7 +14,7 @@ import axios from 'axios';
 
 import RangeSlider from 'react-bootstrap-range-slider';
 
-export default function Setting({ isHost, storeSettings }) {
+export default function Setting({ isHost, updateSettings }) {
   const [timer, setTimer] = useState(60);
   const [numRounds, setNumRounds] = useState(10);
   const [showToolTip, setShowToolTip] = useState('on');
@@ -22,6 +22,20 @@ export default function Setting({ isHost, storeSettings }) {
   const [artistKeyword, setArtistKeyword] = useState('');
   const [artistResults, setArtistResults] = useState([]);
   const [showArtistModal, setShowArtistModal] = useState(false);
+
+  // update the settings state in lobby upon any change to any of the settings
+  useEffect(() => {
+    var settings = { timer: timer, numRounds: numRounds, artists: artists };
+    updateSettings(settings);
+  }, [timer, numRounds, artists]);
+
+  const handleChangeTimer = (e) => {
+    setTimer(e.target.value);
+  };
+
+  const handleChangeRounds = (e) => {
+    setNumRounds(e.target.value);
+  };
 
   const handleChangeArtistKeyword = (e) => {
     setArtistKeyword(e.target.value);
@@ -47,17 +61,11 @@ export default function Setting({ isHost, storeSettings }) {
   const handleSubmitSelectArtist = (newArtist) => {
     return (event) => {
       event.preventDefault();
-      console.log(newArtist);
       setArtists([...artists, newArtist]);
+
       setShowToolTip('on');
       setShowArtistModal(false);
     };
-  };
-
-  const handleSaveSettings = (e) => {
-    e.preventDefault(e);
-    var settings = { timer: timer, numRounds: numRounds, artists: artists };
-    storeSettings(settings);
   };
 
   return (
@@ -83,7 +91,7 @@ export default function Setting({ isHost, storeSettings }) {
                   tooltipPlacement='top'
                   tooltip={showToolTip}
                   variant='info'
-                  onChange={(changeEvent) => setTimer(changeEvent.target.value)}
+                  onChange={handleChangeTimer}
                 />
               </Col>
             </Form.Group>
@@ -101,9 +109,7 @@ export default function Setting({ isHost, storeSettings }) {
                   tooltipPlacement='top'
                   tooltip={showToolTip}
                   variant='info'
-                  onChange={(changeEvent) =>
-                    setNumRounds(changeEvent.target.value)
-                  }
+                  onChange={handleChangeRounds}
                 />
               </Col>
             </Form.Group>
@@ -111,7 +117,7 @@ export default function Setting({ isHost, storeSettings }) {
               <Form.Label column lg='4'>
                 Search For Artist
               </Form.Label>
-              <Col lg='5'>
+              <Col sm='9' lg='5'>
                 <Form.Control
                   type='text'
                   placeholder='Khalid, Post Malone ... '
@@ -119,7 +125,7 @@ export default function Setting({ isHost, storeSettings }) {
                   onChange={handleChangeArtistKeyword}
                 />
               </Col>
-              <Col lg='3'>
+              <Col sm='3'>
                 <Button
                   variant='info'
                   block
@@ -147,16 +153,6 @@ export default function Setting({ isHost, storeSettings }) {
                   )}
                 </ListGroup>
               </Col>
-            </Form.Group>
-            <Form.Group>
-              <Button
-                variant='info'
-                type='submit'
-                block
-                onClick={handleSaveSettings}
-              >
-                Save
-              </Button>
             </Form.Group>
           </fieldset>
         </Form>

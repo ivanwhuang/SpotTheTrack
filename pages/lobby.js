@@ -37,17 +37,6 @@ function useSocket(url) {
   return socket;
 }
 
-function HostButton({ host, cb }) {
-  if (host) {
-    return (
-      <Button onClick={cb} variant='info'>
-        <i className='fa fa-rocket' aria-hidden='true'></i> Start Game
-      </Button>
-    );
-  }
-  return null;
-}
-
 export default function Lobby() {
   const router = useRouter();
 
@@ -82,7 +71,6 @@ export default function Lobby() {
 
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
-        console.log(serverPlayers);
         setPlayers(serverPlayers);
       });
     }
@@ -117,17 +105,17 @@ export default function Lobby() {
     e.preventDefault();
     let info = {
       room,
-      settings: null,
+      settings: settings,
     };
+    console.log(info);
     if (isHost) {
       socket.emit('gameStart', info);
       // TODO: add functionality to transfer to game page
     }
   };
 
-  const getSettings = (settings) => {
+  const updateSettings = (settings) => {
     setSettings(settings);
-    console.log(settings);
   };
 
   return (
@@ -144,15 +132,25 @@ export default function Lobby() {
                 </ListGroup.Item>
                 {players.map((player) => (
                   <ListGroup.Item variant='dark'>
-                    {player.name}{' '}
-                    {isHost && player.socket_id === socketId && <b>[Host] </b>}
+                    {player.name} {player.host && <b>[Host] </b>}
                   </ListGroup.Item>
                 ))}
               </ListGroup>
-              <HostButton host={isHost} cb={handleStartGame} />
+              <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+                {isHost && (
+                  <Button
+                    onClick={handleStartGame}
+                    variant='info'
+                    style={{ width: '50%' }}
+                  >
+                    <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                    Game
+                  </Button>
+                )}
+              </div>
             </Col>
             <Col lg='6'>
-              <Settings isHost={isHost} storeSettings={getSettings} />
+              <Settings isHost={isHost} updateSettings={updateSettings} />
             </Col>
           </Row>
         </Container>
