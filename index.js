@@ -53,8 +53,6 @@ io.on('connection', (socket) => {
     socket.join(newRoom);
     socket.emit('roomCode', newRoom);
     socket.emit('roomInfo', rooms[newRoom]);
-
-    console.log(rooms[newRoom], new Date());
   });
 
   socket.on('joinRoom', ({ name, room }) => {
@@ -77,20 +75,9 @@ io.on('connection', (socket) => {
     // append player to room
     rooms[room].push(player);
 
-    console.log(rooms[room], new Date());
-
-    // notify frontend of new player joining room
-    // socket.broadcast.to(room).emit('newUser', player);
-
     // send frontend update room information
     io.in(room).emit('roomInfo', rooms[room]);
   });
-
-  // socket.on('getRoomInformation', (room) => {
-  //   let players = rooms[room];
-  //   console.log(players, new Date());
-  //   socket.emit('roomInfo', players);
-  // });
 
   socket.on('gameStart', (settings) => {
     console.log(settings);
@@ -107,22 +94,8 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('chat', data);
   });
 
-  // socket.on('willDisconnect', (clientSocket) => {
-  //   setTimeout(() => {
-  //     let room = Object.keys(clientSocket.rooms);
-  //     console.log(room);
-  //     io.of('/').in(room[1]).clients( (err, clients) => {
-  //       if (clients.length <= 0) {
-  //         delete rooms[room[1]];
-  //         console.log(`deleted room ${room[1]}`);
-  //       }
-  //     });
-  //   }, 1000);
-  // });
-
   socket.on('disconnect', () => {
     console.log('Websocket ' + socket.id + ' has left.');
-    // io.emit('message', 'A User has left');
     io.of('/')
       .in(roomOfSocket[socket.id])
       .clients((err, clients) => {
@@ -133,9 +106,9 @@ io.on('connection', (socket) => {
           // delete room if all clients have disconnected from room
           if (clients.length <= 0) {
             tmpRoomPlayers = rooms[roomOfSocket[socket.id]];
-            console.log(`deleted room ${roomOfSocket[socket.id]}`);
+            console.log(`room to delete: ${roomOfSocket[socket.id]}`);
             delete rooms[roomOfSocket[socket.id]];
-            console.log(rooms[roomOfSocket[socket.id]]); // should be undefined
+            console.log(`deleted room: ${rooms[roomOfSocket[socket.id]]}`); // should be undefined
           }
 
           try {
@@ -171,7 +144,6 @@ io.on('connection', (socket) => {
 
               // Update room information in client
               socket.to(roomOfSocket[socket.id]).emit('roomInfo', players);
-              console.log(rooms[roomOfSocket[socket.id]], new Date());
 
               delete roomOfSocket[socket.id];
               console.log(`deleted ${socket.id} from memory`);

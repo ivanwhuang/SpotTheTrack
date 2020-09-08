@@ -76,10 +76,6 @@ export default function Lobby() {
         setRoom(newRoom);
       });
 
-      // socket.on('newUser', (player) => {
-      //   socket.emit('getRoomInformation', room)
-      // });
-
       socket.on('changeHost', () => {
         setIsHost(true);
       });
@@ -87,19 +83,8 @@ export default function Lobby() {
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
         console.log(serverPlayers);
-        // let playersToAppend = serverPlayers.filter(
-        //   (serverPlayer) => serverPlayer.socket_id !== socketId
-        // );
         setPlayers(serverPlayers);
       });
-
-      // remove disconnected player from client info
-      // socket.on('userDisconnected', (playerSocketId) => {
-      //   let filteredPlayers = players.filter(
-      //     (player) => player.socket_id !== playerSocketId
-      //   );
-      //   setPlayers(filteredPlayers);
-      // });
     }
   }, [socket, players]);
 
@@ -121,7 +106,6 @@ export default function Lobby() {
         socket.emit('createRoom', name);
         setIsHost(true);
       }
-      // setPlayers([...players, name]);
     }
   };
 
