@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+import copy from 'copy-to-clipboard';
 import Settings from '../components/settings';
 
 import { useRouter } from 'next/router';
@@ -76,6 +77,14 @@ export default function Lobby() {
     }
   }, [socket, players]);
 
+  const copyInviteLink = () => {
+    copy(`http://localhost:3000/lobby?room=${room}`);
+  };
+
+  const updateSettings = (settings) => {
+    setSettings(settings);
+  };
+
   const handleNameChange = (e) => {
     setName(e.target.value);
   };
@@ -114,18 +123,28 @@ export default function Lobby() {
     }
   };
 
-  const updateSettings = (settings) => {
-    setSettings(settings);
-  };
-
   return (
     <div>
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
             <Col>
-              <h2 style={{ color: 'white' }}>Room ID: {room}</h2>
-              <ListGroup>
+              <h1 style={{ color: 'white', marginBottom: '2rem' }}>
+                Game Lobby
+              </h1>
+              <h5 style={{ color: 'white' }}>Room ID:</h5>
+              <p style={{ color: 'white' }}>{room}</p>
+              <h5 style={{ color: 'white' }}>
+                Invite Link:{' '}
+                <Button onClick={copyInviteLink} variant='info' size='sm'>
+                  Copy Link
+                </Button>{' '}
+              </h5>
+              <p style={{ color: 'white' }}>
+                {`http://localhost:3000/lobby?room=${room}`}
+              </p>
+
+              <ListGroup style={{ padding: '1rem' }}>
                 <ListGroup.Item variant='dark'>
                   <i className='fa fa-users' aria-hidden='true'></i> Players in
                   Room:
@@ -136,12 +155,12 @@ export default function Lobby() {
                   </ListGroup.Item>
                 ))}
               </ListGroup>
-              <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+              <div style={{ textAlign: 'center' }}>
                 {isHost && (
                   <Button
                     onClick={handleStartGame}
                     variant='info'
-                    style={{ width: '50%' }}
+                    style={{ width: '30%' }}
                   >
                     <i className='fa fa-rocket' aria-hidden='true'></i> Start
                     Game
