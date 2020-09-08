@@ -34,10 +34,10 @@ io.on('connection', (socket) => {
 
     // construct host object
     let host = {
-      "socket_id": socket.id,
-      "host": true,
+      socket_id: socket.id,
+      host: true,
       name,
-      "score": 0,
+      score: 0,
     };
 
     // set nickname for socket
@@ -52,6 +52,9 @@ io.on('connection', (socket) => {
     // socket functionality to join room and tell frontend
     socket.join(newRoom);
     socket.emit('roomCode', newRoom);
+    socket.emit('roomInfo', rooms[newRoom]);
+
+    console.log(rooms[newRoom], new Date());
   });
 
   socket.on('joinRoom', ({ name, room }) => {
@@ -59,10 +62,10 @@ io.on('connection', (socket) => {
 
     // construct player object
     let player = {
-      "socket_id": socket.id,
-      "host": false,
+      socket_id: socket.id,
+      host: false,
       name,
-      "score": 0,
+      score: 0,
     };
 
     // set nickname for socket
@@ -74,25 +77,31 @@ io.on('connection', (socket) => {
     // append player to room
     rooms[room].push(player);
 
+    console.log(rooms[room], new Date());
+
     // notify frontend of new player joining room
-    socket.broadcast.to(room).emit('newUser', player);
+    // socket.broadcast.to(room).emit('newUser', player);
 
     // send frontend update room information
-    socket.emit('roomInfo', rooms[room]);
+    io.in(room).emit('roomInfo', rooms[room]);
   });
 
-  socket.on('getRoomInformation', (room) => {
-    let players = rooms[room];
-    socket.emit('roomInfo', players);
-  });
+  // socket.on('getRoomInformation', (room) => {
+  //   let players = rooms[room];
+  //   console.log(players, new Date());
+  //   socket.emit('roomInfo', players);
+  // });
 
   socket.on('gameStart', (settings) => {
     console.log(settings);
     console.log(rooms[settings.room]);
   });
 
-  setIntervalX( 
-    () => emitRemainingTime(socket, Math.floor(new Date() / 1000)), 1000, 30);
+  setIntervalX(
+    () => emitRemainingTime(socket, Math.floor(new Date() / 1000)),
+    1000,
+    30
+  );
 
   socket.on('chat', (data) => {
     socket.broadcast.emit('chat', data);
@@ -114,55 +123,64 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Websocket ' + socket.id + ' has left.');
     // io.emit('message', 'A User has left');
-    io.of('/').in(roomOfSocket[socket.id]).clients( (err, clients) => {
-      if (err) {
-        console.error(err);
-      } else {
-        let tmpRoomPlayers;
-        // delete room if all clients have disconnected from room
-        if (clients.length <= 0) {
-          tmpRoomPlayers = rooms[roomOfSocket[socket.id]];
-          delete rooms[roomOfSocket[socket.id]];
-          console.log(`deleted room ${roomOfSocket[socket.id]}`);
-          console.log(rooms[roomOfSocket[socket.id]]);  // should be undefined
-        }
-
-        try {
-          // delete the disconnected socket from memory
-          if (socket.id in roomOfSocket) {
-            socket
-              .to(roomOfSocket[socket.id])
-              .emit('userDisconnected', socket.nickname);
-
-            // find and delete player associated to socket in rooms
-            let players;
-            if (roomOfSocket[socket.id] in rooms) {
-              players = rooms[roomOfSocket[socket.id]];
-            } else {
-              players = tmpRoomPlayers;
-            }
-
-            if (players.find(player => player.socket_id === socket.id).host
-                && clients.length > 0) {
-              players = players.filter(player => player.socket_id !== socket.id);
-
-              // change host and tell client
-              players[0].host = true;
-              io.to(players[0].socket_id).emit('changeHost');
-            } else {
-              players = players.filter(player => player.socket_id !== socket.id);
-            }
-            
-            rooms[roomOfSocket[socket.id]] = players;
-
-            delete roomOfSocket[socket.id];
-            console.log(`deleted ${socket.id} from memory`);
-          }
-        } catch (err) {
+    io.of('/')
+      .in(roomOfSocket[socket.id])
+      .clients((err, clients) => {
+        if (err) {
           console.error(err);
+        } else {
+          let tmpRoomPlayers;
+          // delete room if all clients have disconnected from room
+          if (clients.length <= 0) {
+            tmpRoomPlayers = rooms[roomOfSocket[socket.id]];
+            console.log(`deleted room ${roomOfSocket[socket.id]}`);
+            delete rooms[roomOfSocket[socket.id]];
+            console.log(rooms[roomOfSocket[socket.id]]); // should be undefined
+          }
+
+          try {
+            // delete the disconnected socket from memory
+            if (socket.id in roomOfSocket) {
+              // find and delete player associated to socket in rooms
+              let players;
+              if (roomOfSocket[socket.id] in rooms) {
+                players = rooms[roomOfSocket[socket.id]];
+              } else {
+                players = tmpRoomPlayers;
+              }
+
+              if (
+                players.find((player) => player.socket_id === socket.id).host &&
+                clients.length > 0
+              ) {
+                players = players.filter(
+                  (player) => player.socket_id !== socket.id
+                );
+
+                // change host and tell client
+                players[0].host = true;
+                io.to(players[0].socket_id).emit('changeHost');
+              } else {
+                players = players.filter(
+                  (player) => player.socket_id !== socket.id
+                );
+              }
+
+              // Update room information in server
+              rooms[roomOfSocket[socket.id]] = players;
+
+              // Update room information in client
+              socket.to(roomOfSocket[socket.id]).emit('roomInfo', players);
+              console.log(rooms[roomOfSocket[socket.id]], new Date());
+
+              delete roomOfSocket[socket.id];
+              console.log(`deleted ${socket.id} from memory`);
+            }
+          } catch (err) {
+            console.error(err);
+          }
         }
-      }
-    });
+      });
   });
 });
 
@@ -175,10 +193,10 @@ const emitRemainingTime = (socket, time) => {
   const endEpochTime = time + 30;
 
   let response = {
-    "current_time": currentEpochTime,
-    "end_time": endEpochTime,
-    "socket_id": socket.id,
-  }
+    current_time: currentEpochTime,
+    end_time: endEpochTime,
+    socket_id: socket.id,
+  };
   socket.broadcast.emit('time', JSON.stringify(response));
 };
 
@@ -188,7 +206,7 @@ const emitRemainingTime = (socket, time) => {
 */
 const setIntervalX = (callback, delay, repetitions) => {
   let x = 0;
-  let interval = setInterval( () => {
+  let interval = setInterval(() => {
     callback();
 
     if (++x === repetitions) {

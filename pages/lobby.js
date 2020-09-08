@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+import Settings from '../components/settings';
+
 import { useRouter } from 'next/router';
 
 import {
@@ -37,7 +39,11 @@ function useSocket(url) {
 
 function HostButton({ host, cb }) {
   if (host) {
-    return <Button onClick={cb}>Start Game</Button>;
+    return (
+      <Button onClick={cb} variant='info'>
+        <i className='fa fa-rocket' aria-hidden='true'></i> Start Game
+      </Button>
+    );
   }
   return null;
 }
@@ -53,6 +59,11 @@ export default function Lobby() {
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
   const [socketId, setSocketId] = useState('');
+  const [settings, setSettings] = useState({
+    timer: 60,
+    numRounds: 10,
+    artists: [],
+  });
 
   useEffect(() => {
     if (socket) {
@@ -65,9 +76,9 @@ export default function Lobby() {
         setRoom(newRoom);
       });
 
-      socket.on('newUser', (player) => {
-        setPlayers([...players, player.name]);
-      });
+      // socket.on('newUser', (player) => {
+      //   socket.emit('getRoomInformation', room)
+      // });
 
       socket.on('changeHost', () => {
         setIsHost(true);
@@ -75,16 +86,20 @@ export default function Lobby() {
 
       // update client info of players with server knowledge
       socket.on('roomInfo', (serverPlayers) => {
-        console.log(name, serverPlayers);
-        let playersToAppend = serverPlayers.filter(serverPlayer => serverPlayer.socket_id !== socketId);
-        setPlayers([...players, ...(playersToAppend.map((aPlayer) => aPlayer.name))]);
+        console.log(serverPlayers);
+        // let playersToAppend = serverPlayers.filter(
+        //   (serverPlayer) => serverPlayer.socket_id !== socketId
+        // );
+        setPlayers(serverPlayers);
       });
 
       // remove disconnected player from client info
-      socket.on('userDisconnected', (playerName) => {
-        let filteredPlayers = players.filter(player => player !== playerName);
-        setPlayers(filteredPlayers);
-      });
+      // socket.on('userDisconnected', (playerSocketId) => {
+      //   let filteredPlayers = players.filter(
+      //     (player) => player.socket_id !== playerSocketId
+      //   );
+      //   setPlayers(filteredPlayers);
+      // });
     }
   }, [socket, players]);
 
@@ -106,7 +121,7 @@ export default function Lobby() {
         socket.emit('createRoom', name);
         setIsHost(true);
       }
-      setPlayers([...players, name]);
+      // setPlayers([...players, name]);
     }
   };
 
@@ -124,7 +139,12 @@ export default function Lobby() {
       socket.emit('gameStart', info);
       // TODO: add functionality to transfer to game page
     }
-  }
+  };
+
+  const getSettings = (settings) => {
+    setSettings(settings);
+    console.log(settings);
+  };
 
   return (
     <div>
@@ -133,17 +153,23 @@ export default function Lobby() {
           <Row>
             <Col>
               <h2 style={{ color: 'white' }}>Room ID: {room}</h2>
-            </Col>
-
-            <Col>
               <ListGroup>
-                <ListGroup.Item variant='dark'>Players in Room:</ListGroup.Item>
-                {players.map((name) => (
-                  <ListGroup.Item variant='dark'>{name}</ListGroup.Item>
+                <ListGroup.Item variant='dark'>
+                  <i className='fa fa-users' aria-hidden='true'></i> Players in
+                  Room:
+                </ListGroup.Item>
+                {players.map((player) => (
+                  <ListGroup.Item variant='dark'>
+                    {player.name}{' '}
+                    {isHost && player.socket_id === socketId && <b>[Host] </b>}
+                  </ListGroup.Item>
                 ))}
               </ListGroup>
+              <HostButton host={isHost} cb={handleStartGame} />
             </Col>
-            <HostButton host={isHost} cb={handleStartGame} />
+            <Col lg='6'>
+              <Settings isHost={isHost} storeSettings={getSettings} />
+            </Col>
           </Row>
         </Container>
       </div>
