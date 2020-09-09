@@ -4,7 +4,8 @@ import axios from 'axios';
 import io from 'socket.io-client';
 
 import copy from 'copy-to-clipboard';
-import Settings from '../components/settings';
+import HostSettings from '../components/hostSettings';
+import Settings from '../components/Settings';
 
 import ChatBubble from '../components/chatBubble.js';
 import AudioPlayer from 'react-h5-audio-player';
@@ -100,6 +101,10 @@ export default function Lobby() {
         setPlayers(serverPlayers);
       });
 
+      socket.on('updateSettings', (settings) => {
+        setSettings(settings);
+      });
+
       socket.on('gameStart', (data) => {
         setTracks(data.tracks);
         setSongName(data.tracks[currentTrack].name);
@@ -121,7 +126,7 @@ export default function Lobby() {
   };
 
   const updateSettings = (settings) => {
-    setSettings(settings);
+    socket.emit('updateSettings', { settings, room });
   };
 
   const updateToNextTrack = () => {
@@ -252,7 +257,14 @@ export default function Lobby() {
                 </div>
               </Col>
               <Col lg='6'>
-                <Settings isHost={isHost} updateSettings={updateSettings} />
+                {isHost ? (
+                  <HostSettings
+                    isHost={isHost}
+                    updateSettings={updateSettings}
+                  />
+                ) : (
+                  <Settings settings={settings} />
+                )}
               </Col>
             </Row>
           </Container>

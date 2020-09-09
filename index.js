@@ -80,6 +80,10 @@ io.on('connection', (socket) => {
     io.in(room).emit('roomInfo', rooms[room]);
   });
 
+  socket.on('updateSettings', ({ settings, room }) => {
+    io.in(room).emit('updateSettings', settings);
+  });
+
   socket.on('prepareGame', async (settings) => {
     console.log(settings);
     console.log(rooms[settings.room]);
