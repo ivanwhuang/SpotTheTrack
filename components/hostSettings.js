@@ -14,7 +14,7 @@ import axios from 'axios';
 
 import RangeSlider from 'react-bootstrap-range-slider';
 
-export default function HostSetting({ isHost, updateSettings }) {
+export default function HostSetting({ updateSettings }) {
   const [timer, setTimer] = useState(60);
   const [numRounds, setNumRounds] = useState(10);
   const [showToolTip, setShowToolTip] = useState('on');
@@ -76,7 +76,7 @@ export default function HostSetting({ isHost, updateSettings }) {
       </h6>
       <div className='settings'>
         <Form style={{ color: 'white' }}>
-          <fieldset disabled={!isHost}>
+          <fieldset>
             <Form.Group as={Row} style={{ marginTop: '2rem' }}>
               <Form.Label column lg={4}>
                 Time to Guess (seconds)

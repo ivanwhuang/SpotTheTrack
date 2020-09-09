@@ -258,10 +258,7 @@ export default function Lobby() {
               </Col>
               <Col lg='6'>
                 {isHost ? (
-                  <HostSettings
-                    isHost={isHost}
-                    updateSettings={updateSettings}
-                  />
+                  <HostSettings updateSettings={updateSettings} />
                 ) : (
                   <Settings settings={settings} />
                 )}
