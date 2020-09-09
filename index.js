@@ -11,6 +11,7 @@ app.use(express.json({ extended: false }));
 
 // Define Routes
 app.use('/api/spotify', require('./api/spotify'));
+app.use('/api/lobby', require('./api/lobby'));
 
 const PORT = process.env.PORT || 5000;
 
@@ -19,10 +20,10 @@ const server = app.listen(PORT, () =>
 );
 
 // global variable storing the rooms
-let rooms = {};
+var rooms = {};
 
 // global variable keeping track of the room for each socket
-let roomOfSocket = {};
+var roomOfSocket = {};
 
 const io = socketio(server);
 
@@ -204,3 +205,5 @@ const setIntervalX = (callback, delay, repetitions) => {
     }
   }, delay);
 };
+
+exports.rooms = rooms;

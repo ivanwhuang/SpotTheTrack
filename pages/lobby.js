@@ -138,15 +138,24 @@ export default function Lobby() {
     setName(e.target.value);
   };
 
-  const handleSubmitName = (e) => {
+  const handleSubmitName = async (e) => {
     e.preventDefault();
     if (name) {
       setShowModal(false);
       const { room } = router.query;
       if (room) {
         // Not host
-        socket.emit('joinRoom', { name, room });
-        setRoom(room);
+        const response = await axios.get(
+          'http://localhost:5000/api/lobby/isValidRoom/' + room
+        );
+        const isValidRoom = response.data;
+        if (isValidRoom) {
+          socket.emit('joinRoom', { name, room });
+          setRoom(room);
+        } else {
+          alert('This room does not exist');
+          router.push('/');
+        }
       } else {
         // Host of room
         socket.emit('createRoom', name);

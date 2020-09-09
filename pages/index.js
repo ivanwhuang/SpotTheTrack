@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 
 import Link from 'next/link';
+import axios from 'axios';
 
 import { useRouter } from 'next/router';
 
-import { Container, Row, Col, Button, Form, Modal } from 'react-bootstrap';
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Form,
+  Modal,
+  Alert,
+} from 'react-bootstrap';
 
 export default function Home() {
   const router = useRouter();
 
   const [showModal, setShowModal] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [room, setRoom] = useState('');
 
   const handleHostSubmit = (e) => {
@@ -30,10 +40,18 @@ export default function Home() {
     setRoom(e.target.value);
   };
 
-  const handleSubmitRoom = (e) => {
+  const handleSubmitRoom = async (e) => {
     e.preventDefault();
     if (room) {
-      router.push('/lobby?room=' + room);
+      const response = await axios.get(
+        'http://localhost:5000/api/lobby/isValidRoom/' + room
+      );
+      const isValidRoom = response.data;
+      if (isValidRoom) {
+        router.push('/lobby?room=' + room);
+      } else {
+        setShowAlert(true);
+      }
     }
   };
 
@@ -125,14 +143,27 @@ export default function Home() {
           <Modal.Header closeButton>
             <Modal.Title>Join By Room ID</Modal.Title>
           </Modal.Header>
-          <Form.Group controlId='nameForRoom' className='landing-button'>
-            <Form.Control
-              type='text'
-              placeholder='Room ID'
-              size='lg'
-              onChange={handleRoomChange}
-            />
-          </Form.Group>
+          <Modal.Body>
+            {showAlert && (
+              <Alert
+                variant='danger'
+                onClose={() => setShowAlert(false)}
+                dismissible
+              >
+                <Alert.Heading>Woops..</Alert.Heading>
+                <p>That room does not exist</p>
+              </Alert>
+            )}
+            <Form.Group controlId='nameForRoom' className='landing-button'>
+              <Form.Control
+                type='text'
+                placeholder='Room ID'
+                size='lg'
+                onChange={handleRoomChange}
+              />
+            </Form.Group>
+          </Modal.Body>
+
           <Modal.Footer>
             <Button variant='secondary' onClick={handleSubmitRoom}>
               Enter Game Lobby
