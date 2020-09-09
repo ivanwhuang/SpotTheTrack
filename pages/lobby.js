@@ -217,44 +217,48 @@ export default function Lobby() {
           <Container fluid style={{ padding: '0 2rem' }}>
             <Row>
               <Col>
+                <div
+                  style={{
+                    float: 'right',
+                    marginTop: '0.5rem',
+                    marginRight: '1rem',
+                  }}
+                >
+                  {isHost && (
+                    <Button onClick={handleStartGame} variant='info'>
+                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                      Game
+                    </Button>
+                  )}
+                </div>
                 <h1 style={{ color: 'white', marginBottom: '2rem' }}>
                   Game Lobby
                 </h1>
                 <h5 style={{ color: 'white' }}>Room ID:</h5>
-                <p style={{ color: 'white' }}>{room}</p>
+                <p style={{ color: 'lightGray' }}>{room}</p>
                 <h5 style={{ color: 'white' }}>
                   Invite Link:{' '}
                   <Button onClick={copyInviteLink} variant='info' size='sm'>
                     Copy Link
                   </Button>{' '}
                 </h5>
-                <p style={{ color: 'white' }}>
+                <p style={{ color: 'lightGray' }}>
                   {`http://localhost:3000/lobby?room=${room}`}
                 </p>
-
+                <h5 style={{ color: 'white' }}>Players in Room:</h5>
                 <ListGroup style={{ padding: '1rem' }}>
-                  <ListGroup.Item variant='dark'>
-                    <i className='fa fa-users' aria-hidden='true'></i> Players
-                    in Room:
-                  </ListGroup.Item>
                   {players.map((player) => (
-                    <ListGroup.Item variant='dark' key={player.socket_id}>
+                    <ListGroup.Item
+                      variant='dark'
+                      key={player.socket_id}
+                      style={{
+                        border: '1px solid rgba(0, 0, 0, 0.3)',
+                      }}
+                    >
                       {player.name} {player.host && <b>[Host] </b>}
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
-                <div style={{ textAlign: 'center' }}>
-                  {isHost && (
-                    <Button
-                      onClick={handleStartGame}
-                      variant='info'
-                      style={{ width: '30%' }}
-                    >
-                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
-                      Game
-                    </Button>
-                  )}
-                </div>
               </Col>
               <Col lg='6'>
                 {isHost ? (

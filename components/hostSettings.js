@@ -144,7 +144,13 @@ export default function HostSetting({ updateSettings }) {
                 <ListGroup>
                   {artists.length > 0 ? (
                     artists.map((artist) => (
-                      <ListGroup.Item variant='light' key={artist}>
+                      <ListGroup.Item
+                        variant='light'
+                        key={artist}
+                        style={{
+                          border: '1px solid rgba(0, 0, 0, 0.3)',
+                        }}
+                      >
                         {artist}
                       </ListGroup.Item>
                     ))
@@ -164,7 +170,7 @@ export default function HostSetting({ updateSettings }) {
           <Modal.Header closeButton>
             <Modal.Title>Which Artist?</Modal.Title>
           </Modal.Header>
-          <Modal.Body style={{ backgroundColor: '#c6c6c6' }}>
+          <Modal.Body className='artist-modal-background'>
             <Form.Group controlId='ArtistSearchModal'>
               <div
                 style={{
@@ -179,6 +185,7 @@ export default function HostSetting({ updateSettings }) {
                     border='dark'
                     key={artist['name']}
                     style={{ width: '15rem', margin: '1rem' }}
+                    className='artist-card'
                   >
                     <Card.Img
                       src={

@@ -76,6 +76,20 @@
   padding: 2rem 0;
 }
 
+.artist-modal-background {
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('/images/mountain.jpg') no-repeat center center/cover;
+}
+
+.artist-card {
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.4), 0 10px 23px 0 rgba(0, 0, 0, 0.19);
+}
+
+.artist-card:hover {
+  box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.6), 0 14px 28px 0 rgba(0, 0, 0, 0.19);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
 /* ----------------------- Solo Game Page -------------------------*/
 .game-background {
   background: #4b545c;

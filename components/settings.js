@@ -58,7 +58,13 @@ export default function Settings({ settings }) {
                 <ListGroup>
                   {artists.length > 0 ? (
                     artists.map((artist) => (
-                      <ListGroup.Item variant='light' key={artist}>
+                      <ListGroup.Item
+                        variant='light'
+                        key={artist}
+                        style={{
+                          border: '1px solid rgba(0, 0, 0, 0.3)',
+                        }}
+                      >
                         {artist}
                       </ListGroup.Item>
                     ))
