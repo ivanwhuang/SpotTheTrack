@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const socketio = require('socket.io');
 const uuid = require('short-uuid');
+const axios = require('axios');
 
 const app = express();
 
@@ -79,13 +80,21 @@ io.on('connection', (socket) => {
     io.in(room).emit('roomInfo', rooms[room]);
   });
 
-  socket.on('prepareGame', (settings) => {
+  socket.on('prepareGame', async (settings) => {
     console.log(settings);
     console.log(rooms[settings.room]);
 
     // .... Do some prep work
+    try {
+      const response = await axios.get(
+        'http://localhost:5000/api/spotify/initializeGameState'
+      );
+      const data = JSON.parse(response.data);
 
-    io.in(settings.room).emit('gameStart');
+      io.in(settings.room).emit('gameStart', data);
+    } catch (err) {
+      console.error(err);
+    }
   });
 
   setIntervalX(
@@ -94,8 +103,9 @@ io.on('connection', (socket) => {
     30
   );
 
-  socket.on('chat', (data) => {
-    socket.broadcast.emit('chat', data);
+  socket.on('chat', ({ room, name, isMyself, time, text }) => {
+    var newMsg = { name, isMyself, time, text };
+    socket.to(room).emit('chat', newMsg);
   });
 
   socket.on('disconnect', () => {

@@ -6,6 +6,10 @@ import io from 'socket.io-client';
 import copy from 'copy-to-clipboard';
 import Settings from '../components/settings';
 
+import ChatBubble from '../components/chatBubble.js';
+import AudioPlayer from 'react-h5-audio-player';
+import moment from 'moment';
+
 import { useRouter } from 'next/router';
 
 import {
@@ -17,7 +21,6 @@ import {
   ListGroup,
   Modal,
 } from 'react-bootstrap';
-import MultiGame from '../components/multiGame';
 
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
@@ -57,6 +60,26 @@ export default function Lobby() {
   });
   const [gameStart, setGameStart] = useState(false);
 
+  // store tracks from backend api
+  const [tracks, setTracks] = React.useState(null);
+
+  // state to update track
+  const [currentTrack, setCurrentTrack] = React.useState(0);
+  const [songName, setSongName] = React.useState(null);
+  const [correctBanner, setCorrectBanner] = React.useState('');
+  const [preview, setPreview] = React.useState(null);
+  const [guess, setGuess] = useState('');
+  const [chatLog, setChatLog] = useState([]);
+
+  const Player = (url) => (
+    <AudioPlayer
+      autoPlay
+      src={url}
+      onPlay={(e) => console.log('onPlay')}
+      // other props here
+    />
+  );
+
   useEffect(() => {
     if (socket) {
       socket.on('connect', () => {
@@ -77,12 +100,21 @@ export default function Lobby() {
         setPlayers(serverPlayers);
       });
 
-      socket.on('gameStart', () => {
-        console.log('received game start msg');
+      socket.on('gameStart', (data) => {
+        setTracks(data.tracks);
+        setSongName(data.tracks[currentTrack].name);
+        setPreview(data.tracks[currentTrack].preview);
         setGameStart(true);
       });
+
+      socket.on('chat', (newMsg) => {
+        setChatLog([...chatLog, newMsg]);
+      });
     }
-  }, [socket, players]);
+    if (currentTrack > 0) {
+      updateToNextTrack();
+    }
+  }, [socket, players, currentTrack, chatLog]);
 
   const copyInviteLink = () => {
     copy(`http://localhost:3000/lobby?room=${room}`);
@@ -90,6 +122,11 @@ export default function Lobby() {
 
   const updateSettings = (settings) => {
     setSettings(settings);
+  };
+
+  const updateToNextTrack = () => {
+    setPreview(tracks[currentTrack].preview);
+    setSongName(tracks[currentTrack].name);
   };
 
   const handleNameChange = (e) => {
@@ -128,6 +165,44 @@ export default function Lobby() {
       socket.emit('prepareGame', info);
       // TODO: add functionality to transfer to game page
     }
+  };
+
+  const addToChatLog = (text) => {
+    var guess = {
+      name: name,
+      isMyself: true,
+      time: moment().format('LT'),
+      text: text,
+    };
+    setChatLog([...chatLog, guess]);
+
+    socket.emit('chat', {
+      room: room,
+      name: name,
+      isMyself: false,
+      time: moment().format('LT'),
+      text: text,
+    });
+  };
+
+  const handleGuessChange = (e) => {
+    setGuess(e.target.value);
+  };
+
+  const handleGuessSubmit = (e) => {
+    e.preventDefault();
+    addToChatLog(guess);
+    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
+      setCorrectBanner('Correct!');
+
+      // TODO: add game finish page
+      if (currentTrack < tracks.length - 1) {
+        setCurrentTrack(currentTrack + 1);
+      }
+    } else {
+      setCorrectBanner('False! Try Again!');
+    }
+    setGuess('');
   };
 
   if (!gameStart) {
@@ -210,6 +285,94 @@ export default function Lobby() {
       </div>
     );
   } else {
-    return <MultiGame />;
+    return (
+      <div className='game-background'>
+        <Container fluid style={{ padding: '0 2rem' }}>
+          <Row>
+            <Col lg='8'>
+              <h1 style={{ color: 'white' }}>Guess The Song!</h1>
+              <Row>
+                <Col>
+                  <img
+                    src='/images/thinking.png'
+                    alt='thinking'
+                    style={{
+                      width: '100%',
+                      marginTop: '3rem',
+                    }}
+                  ></img>
+                </Col>
+                <Col>
+                  <h1
+                    style={{
+                      textAlign: 'center',
+                      color: 'white',
+                    }}
+                  >
+                    {correctBanner}
+                  </h1>
+                  <img
+                    src='/images/placeholder.png'
+                    alt='rules1'
+                    style={{
+                      width: '100%',
+                      marginTop: '1rem',
+                      marginBottom: '1rem',
+                    }}
+                  ></img>
+                  <Button color='primary' disabled>
+                    {!tracks
+                      ? 'Initializing Game State'
+                      : `Round ${currentTrack + 1}`}
+                  </Button>
+                  <AudioPlayer src={preview} />
+                </Col>
+              </Row>
+            </Col>
+            <Col lg='4'>
+              <div className='msger'>
+                <header className='msger-header'>
+                  <div className='msger-header-title'>
+                    <i className='fa fa-comment'></i> Game Chat
+                  </div>
+                  <div className='msger-header-options'>
+                    <span>
+                      <i className='fa fa-cog'></i>
+                    </span>
+                  </div>
+                </header>
+                <main className='msger-chat'>
+                  {chatLog.map((guess) => (
+                    <ChatBubble
+                      key={Math.random()}
+                      isMyself={guess.isMyself}
+                      name={guess.name}
+                      time={guess.time}
+                      text={guess.text}
+                    />
+                  ))}
+                </main>
+                <form className='msger-inputarea' onSubmit={handleGuessSubmit}>
+                  <input
+                    type='text'
+                    className='msger-input'
+                    placeholder='Take a guess!'
+                    onChange={handleGuessChange}
+                    value={guess}
+                  ></input>
+                  <Button
+                    variant='info'
+                    type='submit'
+                    className='msger-send-btn'
+                  >
+                    Send
+                  </Button>
+                </form>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    );
   }
 }
