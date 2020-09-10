@@ -51,7 +51,14 @@ io.on('connection', (socket) => {
     roomOfSocket[socket.id] = newRoom;
 
     // append player to room
-    rooms[newRoom] = [host];
+    rooms[newRoom] = {
+      players: [host],
+      settings: {
+        timer: 60,
+        numRounds: 10,
+        artists: [],
+      },
+    };
 
     // socket functionality to join room and tell frontend
     socket.join(newRoom);
@@ -78,41 +85,45 @@ io.on('connection', (socket) => {
     roomOfSocket[socket.id] = room;
 
     // append player to room
-    rooms[room].push(player);
+    rooms[room].players.push(player);
 
     // send frontend update room information
     io.in(room).emit('roomInfo', rooms[room]);
   });
 
   socket.on('updateSettings', ({ room, settings }) => {
-    io.in(room).emit('updateSettings', settings);
+    rooms[room].settings = settings;
+    io.in(room).emit('roomInfo', rooms[room]);
   });
 
-  socket.on('prepareGame', async ({room, settings}) => {
+  socket.on('prepareGame', async ({ room, settings }) => {
     console.log(settings);
     console.log(rooms[room]);
     // rooms[settings.room] = settings;
 
     // .... Do some prep work
     try {
-      let params = queryString.stringify({"artists": settings.artists}, {arrayFormat: 'bracket'});
+      let params = queryString.stringify(
+        { artists: settings.artists },
+        { arrayFormat: 'bracket' }
+      );
       const response = await axios.get(
         'http://localhost:5000/api/spotify/initializeGameState',
         {
           params: {
-            "artists": params
-          }
+            artists: params,
+          },
         }
       );
       const data = JSON.parse(response.data);
 
       // send countdown to clients in room
-      io.in(room).emit('countdown', {"serverTime": Date.now() + 5000});
+      io.in(room).emit('countdown', { serverTime: Date.now() + 5000 });
 
       // wait 5 seconds before actually starting the game
       setTimeout(() => {
         let x = 0;
-        io.in(room).emit('gameStart', { "track": data.tracks[x++] });
+        io.in(room).emit('gameStart', { track: data.tracks[x++] });
         console.log((parseInt(settings.timer) + 5) * 1000);
 
         let interval = setInterval(() => {
@@ -120,7 +131,9 @@ io.on('connection', (socket) => {
           // console.log(`emitted new round using ${data.tracks[x]}`);
           if (x >= parseInt(settings.numRounds)) {
             clearInterval(interval);
-            console.log('server sent last round');
+            setTimeout(() => {
+              io.in(room).emit('endOfGame');
+            }, (parseInt(settings.timer) + 1) * 1000);
           }
         }, (parseInt(settings.timer) + 5) * 1000);
       }, 5000);
@@ -142,10 +155,10 @@ io.on('connection', (socket) => {
         if (err) {
           console.error(err);
         } else {
-          let tmpRoomPlayers;
+          let tmpRoomInfo;
           // delete room if all clients have disconnected from room
           if (clients.length <= 0) {
-            tmpRoomPlayers = rooms[roomOfSocket[socket.id]];
+            tmpRoomInfo = rooms[roomOfSocket[socket.id]];
             console.log(`room to delete: ${roomOfSocket[socket.id]}`);
             delete rooms[roomOfSocket[socket.id]];
             console.log(`deleted room: ${rooms[roomOfSocket[socket.id]]}`); // should be undefined
@@ -157,9 +170,9 @@ io.on('connection', (socket) => {
               // find and delete player associated to socket in rooms
               let players;
               if (roomOfSocket[socket.id] in rooms) {
-                players = rooms[roomOfSocket[socket.id]];
+                players = rooms[roomOfSocket[socket.id]].players;
               } else {
-                players = tmpRoomPlayers;
+                players = tmpRoomInfo.players;
               }
 
               if (
@@ -180,10 +193,13 @@ io.on('connection', (socket) => {
               }
 
               // Update room information in server
-              rooms[roomOfSocket[socket.id]] = players;
+              rooms[roomOfSocket[socket.id]].players = players;
 
               // Update room information in client
-              socket.to(roomOfSocket[socket.id]).emit('roomInfo', players);
+              io.to(roomOfSocket[socket.id]).emit(
+                'roomInfo',
+                rooms[roomOfSocket[socket.id]]
+              );
 
               delete roomOfSocket[socket.id];
               console.log(`deleted ${socket.id} from memory`);

@@ -61,30 +61,21 @@ export default function Lobby() {
     numRounds: 10,
     artists: [],
   });
-  const [gameStart, setGameStart] = useState(false);
+
+  const [roomState, setRoomState] = useState('lobby');
 
   // state to update track
-  const [currentGameState, setCurrentGameState] = React.useState({ 
-    "round": null,
-    "songName": null,
-    "preview": null,
+  const [currentGameState, setCurrentGameState] = useState({
+    round: null,
+    songName: null,
+    preview: null,
   });
-  const [correctBanner, setCorrectBanner] = React.useState('');
+  const [correctBanner, setCorrectBanner] = useState('');
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
 
   const [countDown, setCountDown] = useState(null);
   const [serverTime, setServerTime] = useState(null);
-
-  const Player = (url) => (
-    <AudioPlayer
-      autoPlayAfterSrcChange
-      src={url}
-      onPlay={(e) => console.log('onPlay')}
-      // other props here
-      // countdown --> set url 
-    />
-  );
 
   useEffect(() => {
     if (socket) {
@@ -102,25 +93,27 @@ export default function Lobby() {
       });
 
       // update client info of players with server knowledge
-      socket.on('roomInfo', (serverPlayers) => {
-        setPlayers(serverPlayers);
+      socket.on('roomInfo', (roomInfo) => {
+        setPlayers(roomInfo.players);
+        setSettings(roomInfo.settings);
       });
 
-      socket.on('updateSettings', (settings) => {
-        setSettings(settings);
-      });
+      // socket.on('updateSettings', (settings) => {
+      //   setSettings(settings);
+      // });
 
       socket.on('countdown', ({ serverTime }) => {
         setServerTime(serverTime);
+        setRoomState('game');
       });
 
+      // Prob no longer need this event since it's similar to the newRound event.
       socket.on('gameStart', ({ track }) => {
-        setGameStart(true);
         if (track != null) {
           let newGameState = {
-            "round": 1,
-            "songName": track.name,
-            "preview": track.preview,
+            round: 1,
+            songName: track.name,
+            preview: track.preview,
           };
           setCurrentGameState(newGameState);
         }
@@ -128,15 +121,19 @@ export default function Lobby() {
 
       socket.on('newRound', (track) => {
         let newGameState = {
-            "round": currentGameState.round + 1,
-            "songName": track.name,
-            "preview": track.preview,
+          round: currentGameState.round + 1,
+          songName: track.name,
+          preview: track.preview,
         };
         setCurrentGameState(newGameState);
-      })
+      });
 
       socket.on('chat', (newMsg) => {
         setChatLog([...chatLog, newMsg]);
+      });
+
+      socket.on('endOfGame', () => {
+        setRoomState('endOfGame');
       });
     }
   }, [socket, players, currentGameState, chatLog]);
@@ -145,8 +142,9 @@ export default function Lobby() {
     copy(`http://localhost:3000/lobby?room=${room}`);
   };
 
+  // used in HostSettings component
   const updateSettings = (settings) => {
-    socket.emit('updateSettings', { settings, room });
+    socket.emit('updateSettings', { room, settings });
   };
 
   const handleNameChange = (e) => {
@@ -221,7 +219,9 @@ export default function Lobby() {
   const handleGuessSubmit = (e) => {
     e.preventDefault();
     addToChatLog(guess);
-    if (guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()) {
+    if (
+      guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()
+    ) {
       setCorrectBanner('Correct!');
 
       // TODO: add game finish page
@@ -231,7 +231,7 @@ export default function Lobby() {
     setGuess('');
   };
 
-  if (!gameStart) {
+  if (roomState === 'lobby') {
     return (
       <div>
         <div className='lobby-content'>
@@ -280,17 +280,13 @@ export default function Lobby() {
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
-                <div style={{ textAlign: 'center' }}>
-                  <Button>
-                    {serverTime == null 
-                      ? "Game has not started.." 
-                      : <Countdown date={Date.now() + Math.abs(Math.floor(serverTime - Date.now()))} />}
-                  </Button>
-                </div>
               </Col>
               <Col lg='6'>
                 {isHost ? (
-                  <HostSettings updateSettings={updateSettings} />
+                  <HostSettings
+                    updateSettings={updateSettings}
+                    settings={settings}
+                  />
                 ) : (
                   <Settings settings={settings} />
                 )}
@@ -325,7 +321,7 @@ export default function Lobby() {
         </Form>
       </div>
     );
-  } else {
+  } else if (roomState === 'game') {
     return (
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
@@ -344,6 +340,20 @@ export default function Lobby() {
                   ></img>
                 </Col>
                 <Col>
+                  <div style={{ textAlign: 'center' }}>
+                    <Button>
+                      {serverTime == null ? (
+                        'Game has not started..'
+                      ) : (
+                        <Countdown
+                          date={
+                            Date.now() +
+                            Math.abs(Math.floor(serverTime - Date.now()))
+                          }
+                        />
+                      )}
+                    </Button>
+                  </div>
                   <h1
                     style={{
                       textAlign: 'center',
@@ -366,7 +376,11 @@ export default function Lobby() {
                       ? 'Initializing Game State'
                       : `Round ${currentGameState.round}`}
                   </Button>
-                  <AudioPlayer src={currentGameState.preview} />
+                  <AudioPlayer
+                    src={currentGameState.preview}
+                    autoPlayAfterSrcChange
+                    volume={0.3}
+                  />
                 </Col>
               </Row>
             </Col>
@@ -415,5 +429,7 @@ export default function Lobby() {
         </Container>
       </div>
     );
+  } else {
+    return <h1>LNAO</h1>;
   }
 }

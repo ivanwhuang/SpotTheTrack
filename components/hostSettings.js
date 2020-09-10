@@ -14,27 +14,33 @@ import axios from 'axios';
 
 import RangeSlider from 'react-bootstrap-range-slider';
 
-export default function HostSetting({ updateSettings }) {
-  const [timer, setTimer] = useState(60);
-  const [numRounds, setNumRounds] = useState(10);
+export default function HostSetting({ updateSettings, settings }) {
+  const [timer, setTimer] = useState(settings.timer);
+  const [numRounds, setNumRounds] = useState(settings.numRounds);
+  const [artists, setArtists] = useState(settings.artists);
   const [showToolTip, setShowToolTip] = useState('on');
-  const [artists, setArtists] = useState([]);
   const [artistKeyword, setArtistKeyword] = useState('');
   const [artistResults, setArtistResults] = useState([]);
   const [showArtistModal, setShowArtistModal] = useState(false);
 
+  const [newSettings, setNewSettings] = useState(false);
+
   // update the settings state in lobby upon any change to any of the settings
   useEffect(() => {
-    var settings = { timer: timer, numRounds: numRounds, artists: artists };
-    updateSettings(settings);
+    if (newSettings) {
+      var settings = { timer: timer, numRounds: numRounds, artists: artists };
+      updateSettings(settings);
+    }
   }, [timer, numRounds, artists]);
 
   const handleChangeTimer = (e) => {
     setTimer(e.target.value);
+    setNewSettings(true);
   };
 
   const handleChangeRounds = (e) => {
     setNumRounds(e.target.value);
+    setNewSettings(true);
   };
 
   const handleChangeArtistKeyword = (e) => {
@@ -65,6 +71,7 @@ export default function HostSetting({ updateSettings }) {
 
       setShowToolTip('on');
       setShowArtistModal(false);
+      setNewSettings(true);
     };
   };
 
