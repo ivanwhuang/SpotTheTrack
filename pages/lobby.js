@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 
 import copy from 'copy-to-clipboard';
 import HostSettings from '../components/hostSettings';
-import Settings from '../components/Settings';
+import Settings from '../components/settings';
 
 import ChatBubble from '../components/chatBubble.js';
 import AudioPlayer from 'react-h5-audio-player';
@@ -128,7 +128,7 @@ export default function Lobby() {
 
       socket.on('newRound', (track) => {
         let newGameState = {
-            "round": (currentGameState.round + 1),
+            "round": currentGameState.round + 1,
             "songName": track.name,
             "preview": track.preview,
         };
@@ -139,7 +139,7 @@ export default function Lobby() {
         setChatLog([...chatLog, newMsg]);
       });
     }
-  }, [socket, players, chatLog]);
+  }, [socket, players, currentGameState, chatLog]);
 
   const copyInviteLink = () => {
     copy(`http://localhost:3000/lobby?room=${room}`);
@@ -281,16 +281,6 @@ export default function Lobby() {
                   ))}
                 </ListGroup>
                 <div style={{ textAlign: 'center' }}>
-                  {isHost && (
-                    <Button
-                      onClick={handleStartGame}
-                      variant='info'
-                      style={{ width: '30%' }}
-                    >
-                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
-                      Game
-                    </Button>
-                  )}
                   <Button>
                     {serverTime == null 
                       ? "Game has not started.." 

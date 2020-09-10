@@ -3,6 +3,7 @@ const request = require('request');
 const express = require('express');
 const dotenv = require('dotenv').config();
 const Spotify = require('node-spotify-api');
+const queryString = require('query-string');
 const router = express.Router();
 
 var spotify = new Spotify({
@@ -75,8 +76,12 @@ router.get('/gettrack', (req, res) => {
 // @access  Public
 router.get('/initializeGameState', (req, res) => {
   // NOTE: prototype for choosing a random artist
-  let artists = Array('Said the sky', 'illenium', 'dabin', 'Calvin Harris');
+  console.log(req.query.artists);
+  console.log(queryString.parse(req.query.artists, {arrayFormat: 'bracket'}));
+  let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
+  console.log(artists);
   let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
+  console.log(rand_keyword);
 
   let limit = '20';
   spotify.search(
@@ -103,7 +108,8 @@ router.get('/initializeGameState', (req, res) => {
           tracks.push(track);
         }
       }
-
+      console.log(`Received ${tracks.length} tracks from the search ${rand_keyword}`);
+      console.log(tracks);
       res.json(
         JSON.stringify({
           tracks: tracks,

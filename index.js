@@ -3,6 +3,7 @@ const cors = require('cors');
 const socketio = require('socket.io');
 const uuid = require('short-uuid');
 const axios = require('axios');
+const queryString = require('query-string');
 
 const app = express();
 
@@ -94,8 +95,14 @@ io.on('connection', (socket) => {
 
     // .... Do some prep work
     try {
+      let params = queryString.stringify({"artists": settings.artists}, {arrayFormat: 'bracket'});
       const response = await axios.get(
-        'http://localhost:5000/api/spotify/initializeGameState'
+        'http://localhost:5000/api/spotify/initializeGameState',
+        {
+          params: {
+            "artists": params
+          }
+        }
       );
       const data = JSON.parse(response.data);
 
@@ -113,7 +120,7 @@ io.on('connection', (socket) => {
           // console.log(`emitted new round using ${data.tracks[x]}`);
           if (x >= parseInt(settings.numRounds)) {
             clearInterval(interval);
-            console.log('game has finished');
+            console.log('server sent last round');
           }
         }, (parseInt(settings.timer) + 5) * 1000);
       }, 5000);
@@ -188,3 +195,5 @@ io.on('connection', (socket) => {
       });
   });
 });
+
+exports.rooms = rooms;
