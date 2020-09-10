@@ -13,6 +13,8 @@ import moment from 'moment';
 
 import { useRouter } from 'next/router';
 
+import Countdown from 'react-countdown';
+
 import {
   Container,
   Row,
@@ -61,23 +63,26 @@ export default function Lobby() {
   });
   const [gameStart, setGameStart] = useState(false);
 
-  // store tracks from backend api
-  const [tracks, setTracks] = React.useState(null);
-
   // state to update track
-  const [currentTrack, setCurrentTrack] = React.useState(0);
-  const [songName, setSongName] = React.useState(null);
+  const [currentGameState, setCurrentGameState] = React.useState({ 
+    "round": null,
+    "songName": null,
+    "preview": null,
+  });
   const [correctBanner, setCorrectBanner] = React.useState('');
-  const [preview, setPreview] = React.useState(null);
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
 
+  const [countDown, setCountDown] = useState(null);
+  const [serverTime, setServerTime] = useState(null);
+
   const Player = (url) => (
     <AudioPlayer
-      autoPlay
+      autoPlayAfterSrcChange
       src={url}
       onPlay={(e) => console.log('onPlay')}
       // other props here
+      // countdown --> set url 
     />
   );
 
@@ -105,21 +110,36 @@ export default function Lobby() {
         setSettings(settings);
       });
 
-      socket.on('gameStart', (data) => {
-        setTracks(data.tracks);
-        setSongName(data.tracks[currentTrack].name);
-        setPreview(data.tracks[currentTrack].preview);
-        setGameStart(true);
+      socket.on('countdown', ({ serverTime }) => {
+        setServerTime(serverTime);
       });
+
+      socket.on('gameStart', ({ track }) => {
+        setGameStart(true);
+        if (track != null) {
+          let newGameState = {
+            "round": 1,
+            "songName": track.name,
+            "preview": track.preview,
+          };
+          setCurrentGameState(newGameState);
+        }
+      });
+
+      socket.on('newRound', (track) => {
+        let newGameState = {
+            "round": (currentGameState.round + 1),
+            "songName": track.name,
+            "preview": track.preview,
+        };
+        setCurrentGameState(newGameState);
+      })
 
       socket.on('chat', (newMsg) => {
         setChatLog([...chatLog, newMsg]);
       });
     }
-    if (currentTrack > 0) {
-      updateToNextTrack();
-    }
-  }, [socket, players, currentTrack, chatLog]);
+  }, [socket, players, chatLog]);
 
   const copyInviteLink = () => {
     copy(`http://localhost:3000/lobby?room=${room}`);
@@ -127,11 +147,6 @@ export default function Lobby() {
 
   const updateSettings = (settings) => {
     socket.emit('updateSettings', { settings, room });
-  };
-
-  const updateToNextTrack = () => {
-    setPreview(tracks[currentTrack].preview);
-    setSongName(tracks[currentTrack].name);
   };
 
   const handleNameChange = (e) => {
@@ -206,13 +221,10 @@ export default function Lobby() {
   const handleGuessSubmit = (e) => {
     e.preventDefault();
     addToChatLog(guess);
-    if (guess.trim().toLowerCase() === songName.toLowerCase()) {
+    if (guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()) {
       setCorrectBanner('Correct!');
 
       // TODO: add game finish page
-      if (currentTrack < tracks.length - 1) {
-        setCurrentTrack(currentTrack + 1);
-      }
     } else {
       setCorrectBanner('False! Try Again!');
     }
@@ -268,6 +280,23 @@ export default function Lobby() {
                     </ListGroup.Item>
                   ))}
                 </ListGroup>
+                <div style={{ textAlign: 'center' }}>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      variant='info'
+                      style={{ width: '30%' }}
+                    >
+                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                      Game
+                    </Button>
+                  )}
+                  <Button>
+                    {serverTime == null 
+                      ? "Game has not started.." 
+                      : <Countdown date={Date.now() + Math.abs(Math.floor(serverTime - Date.now()))} />}
+                  </Button>
+                </div>
               </Col>
               <Col lg='6'>
                 {isHost ? (
@@ -343,11 +372,11 @@ export default function Lobby() {
                     }}
                   ></img>
                   <Button color='primary' disabled>
-                    {!tracks
+                    {currentGameState.round === null
                       ? 'Initializing Game State'
-                      : `Round ${currentTrack + 1}`}
+                      : `Round ${currentGameState.round}`}
                   </Button>
-                  <AudioPlayer src={preview} />
+                  <AudioPlayer src={currentGameState.preview} />
                 </Col>
               </Row>
             </Col>

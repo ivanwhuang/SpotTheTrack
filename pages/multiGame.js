@@ -37,7 +37,7 @@ export default function MultiGame() {
 
   const Player = (url) => (
     <AudioPlayer
-      autoPlay
+      autoplay
       src={url}
       onPlay={(e) => console.log('onPlay')}
       // other props here
@@ -177,7 +177,7 @@ export default function MultiGame() {
                       ? 'Initializing Game State'
                       : `Round ${currentTrack + 1}`}
                   </Button>
-                  <AudioPlayer src={preview} />
+                  <Player src={preview} />
                 </Col>
               </Row>
             </Col>

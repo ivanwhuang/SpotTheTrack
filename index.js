@@ -40,6 +40,7 @@ io.on('connection', (socket) => {
       host: true,
       name,
       score: 0,
+      answered: false,
     };
 
     // set nickname for socket
@@ -66,6 +67,7 @@ io.on('connection', (socket) => {
       host: false,
       name,
       score: 0,
+      answered: false,
     };
 
     // set nickname for socket
@@ -81,13 +83,14 @@ io.on('connection', (socket) => {
     io.in(room).emit('roomInfo', rooms[room]);
   });
 
-  socket.on('updateSettings', ({ settings, room }) => {
+  socket.on('updateSettings', ({ room, settings }) => {
     io.in(room).emit('updateSettings', settings);
   });
 
-  socket.on('prepareGame', async (settings) => {
+  socket.on('prepareGame', async ({room, settings}) => {
     console.log(settings);
-    console.log(rooms[settings.room]);
+    console.log(rooms[room]);
+    // rooms[settings.room] = settings;
 
     // .... Do some prep work
     try {
@@ -96,17 +99,28 @@ io.on('connection', (socket) => {
       );
       const data = JSON.parse(response.data);
 
-      io.in(settings.room).emit('gameStart', data);
+      // send countdown to clients in room
+      io.in(room).emit('countdown', {"serverTime": Date.now() + 5000});
+
+      // wait 5 seconds before actually starting the game
+      setTimeout(() => {
+        let x = 0;
+        io.in(room).emit('gameStart', { "track": data.tracks[x++] });
+        console.log((parseInt(settings.timer) + 5) * 1000);
+
+        let interval = setInterval(() => {
+          io.in(room).emit('newRound', data.tracks[x++]);
+          // console.log(`emitted new round using ${data.tracks[x]}`);
+          if (x >= parseInt(settings.numRounds)) {
+            clearInterval(interval);
+            console.log('game has finished');
+          }
+        }, (parseInt(settings.timer) + 5) * 1000);
+      }, 5000);
     } catch (err) {
       console.error(err);
     }
   });
-
-  setIntervalX(
-    () => emitRemainingTime(socket, Math.floor(new Date() / 1000)),
-    1000,
-    30
-  );
 
   socket.on('chat', ({ room, name, isMyself, time, text }) => {
     var newMsg = { name, isMyself, time, text };
@@ -174,36 +188,3 @@ io.on('connection', (socket) => {
       });
   });
 });
-
-/*
-  Function: emitRemainingTime
-  Desc:     Helper function to tell clients the server time
-*/
-const emitRemainingTime = (socket, time) => {
-  const currentEpochTime = Math.floor(new Date() / 1000);
-  const endEpochTime = time + 30;
-
-  let response = {
-    current_time: currentEpochTime,
-    end_time: endEpochTime,
-    socket_id: socket.id,
-  };
-  socket.broadcast.emit('time', JSON.stringify(response));
-};
-
-/*
-  Function: setIntervalX
-  Desc:     Invokes callback x times for delay long
-*/
-const setIntervalX = (callback, delay, repetitions) => {
-  let x = 0;
-  let interval = setInterval(() => {
-    callback();
-
-    if (++x === repetitions) {
-      clearInterval(interval);
-    }
-  }, delay);
-};
-
-exports.rooms = rooms;
