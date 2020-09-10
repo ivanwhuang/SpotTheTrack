@@ -63,6 +63,7 @@ export default function Settings({ settings }) {
                         key={artist}
                         style={{
                           border: '1px solid rgba(0, 0, 0, 0.3)',
+                          color: '#212529',
                         }}
                       >
                         {artist}

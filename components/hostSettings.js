@@ -75,6 +75,14 @@ export default function HostSetting({ updateSettings, settings }) {
     };
   };
 
+  const handleRemoveArtist = (artistToRemove) => {
+    return (event) => {
+      event.preventDefault();
+      setArtists(artists.filter((artist) => artist !== artistToRemove));
+      setNewSettings(true);
+    };
+  };
+
   return (
     <div>
       <h1 style={{ color: 'white' }}>Game Settings</h1>
@@ -156,9 +164,18 @@ export default function HostSetting({ updateSettings, settings }) {
                         key={artist}
                         style={{
                           border: '1px solid rgba(0, 0, 0, 0.3)',
+                          color: '#212529',
                         }}
                       >
                         {artist}
+                        <Button
+                          variant='secondary'
+                          size='sm'
+                          style={{ float: 'right', fontSize: '0.650rem' }}
+                          onClick={handleRemoveArtist(artist)}
+                        >
+                          <i class='fa fa-times fa-xs' aria-hidden='true'></i>
+                        </Button>
                       </ListGroup.Item>
                     ))
                   ) : (

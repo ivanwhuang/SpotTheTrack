@@ -70,7 +70,7 @@ export default function Lobby() {
   // state to update track
   const [currentGameState, setCurrentGameState] = useState({
     round: null,
-    songName: null,
+    songName: '',
     preview: null,
   });
   const [correctBanner, setCorrectBanner] = useState('');
@@ -231,15 +231,20 @@ export default function Lobby() {
 
   const handleGuessSubmit = (e) => {
     e.preventDefault();
-    addToChatLog(guess);
     if (
       guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()
     ) {
       setCorrectBanner('Correct!');
-
-      // TODO: add game finish page
+      correctMsg = {
+        name: 'SpotTheTrack',
+        isMyself: false,
+        time: moment().format('LT'),
+        text: 'Good Job! You guessed the right song!',
+      };
+      setChatLog([...chatLog, correctMsg]);
     } else {
       setCorrectBanner('False! Try Again!');
+      addToChatLog(guess);
     }
     setGuess('');
   };
