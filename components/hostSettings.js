@@ -127,7 +127,7 @@ export default function HostSetting({ updateSettings, settings }) {
               <Col sm='9' lg='5'>
                 <Form.Control
                   type='text'
-                  placeholder='Khalid, Post Malone ... '
+                  placeholder='Khalid, Lauv ... '
                   value={artistKeyword}
                   onChange={handleChangeArtistKeyword}
                 />

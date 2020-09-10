@@ -23,6 +23,7 @@ import {
   Form,
   ListGroup,
   Modal,
+  Card,
 } from 'react-bootstrap';
 
 function useSocket(url) {
@@ -237,28 +238,14 @@ export default function Lobby() {
         <div className='lobby-content'>
           <Container fluid style={{ padding: '0 2rem' }}>
             <Row>
-              <Col>
-                <div
-                  style={{
-                    float: 'right',
-                    marginTop: '0.5rem',
-                    marginRight: '1rem',
-                  }}
-                >
-                  {isHost && (
-                    <Button onClick={handleStartGame} variant='info'>
-                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
-                      Game
-                    </Button>
-                  )}
-                </div>
+              <Col style={{ minHeight: '80vh' }}>
                 <h1 style={{ color: 'white', marginBottom: '2rem' }}>
                   Game Lobby
                 </h1>
                 <h5 style={{ color: 'white' }}>Room ID:</h5>
                 <p style={{ color: 'lightGray' }}>{room}</p>
                 <h5 style={{ color: 'white' }}>
-                  Invite Link:{' '}
+                  Invite Your Fiends!{' '}
                   <Button onClick={copyInviteLink} variant='info' size='sm'>
                     Copy Link
                   </Button>{' '}
@@ -266,20 +253,43 @@ export default function Lobby() {
                 <p style={{ color: 'lightGray' }}>
                   {`http://localhost:3000/lobby?room=${room}`}
                 </p>
-                <h5 style={{ color: 'white' }}>Players in Room:</h5>
-                <ListGroup style={{ padding: '1rem' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <h1 style={{ color: 'white' }}>Players</h1>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                  }}
+                >
                   {players.map((player) => (
-                    <ListGroup.Item
+                    <Card
                       variant='dark'
                       key={player.socket_id}
                       style={{
-                        border: '1px solid rgba(0, 0, 0, 0.3)',
+                        width: '8rem',
+                        margin: '1rem',
+                        textAlign: 'center',
+                        background: 'lightgray',
                       }}
                     >
-                      {player.name} {player.host && <b>[Host] </b>}
-                    </ListGroup.Item>
+                      <Card.Body>
+                        <div>
+                          <i
+                            class='fa fa-user fa-3x'
+                            aria-hidden='true'
+                            style={{ color: '#505050' }}
+                          ></i>
+                        </div>
+                        <div>
+                          {player.name} {player.host && <b>[Host] </b>}
+                        </div>
+                      </Card.Body>
+                    </Card>
                   ))}
-                </ListGroup>
+                </div>
               </Col>
               <Col lg='6'>
                 {isHost ? (
@@ -290,6 +300,18 @@ export default function Lobby() {
                 ) : (
                   <Settings settings={settings} />
                 )}
+                <div style={{ textAlign: 'center' }}>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      variant='info'
+                      style={{ marginTop: '1rem', width: '50%' }}
+                    >
+                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                      Game
+                    </Button>
+                  )}
+                </div>
               </Col>
             </Row>
           </Container>
@@ -327,17 +349,44 @@ export default function Lobby() {
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
             <Col lg='8'>
-              <h1 style={{ color: 'white' }}>Guess The Song!</h1>
+              <h1 style={{ color: 'white' }}>Players</h1>
               <Row>
                 <Col>
-                  <img
-                    src='/images/thinking.png'
-                    alt='thinking'
+                  <div
                     style={{
-                      width: '100%',
-                      marginTop: '3rem',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
                     }}
-                  ></img>
+                  >
+                    {players.map((player) => (
+                      <Card
+                        variant='dark'
+                        key={player.socket_id}
+                        style={{
+                          width: '8rem',
+                          margin: '0.5rem',
+                          textAlign: 'center',
+                          background: 'lightgray',
+                        }}
+                      >
+                        <Card.Body>
+                          <div>
+                            <i
+                              class='fa fa-user fa-2x'
+                              aria-hidden='true'
+                              style={{ color: '#505050' }}
+                            ></i>
+                          </div>
+                          <div style={{ fontSize: '14px' }}>
+                            {player.name} {player.host && <b>[Host] </b>}
+                          </div>
+                        </Card.Body>
+                        <Card.Footer></Card.Footer>
+                      </Card>
+                    ))}
+                  </div>
                 </Col>
                 <Col>
                   <div style={{ textAlign: 'center' }}>
@@ -379,7 +428,7 @@ export default function Lobby() {
                   <AudioPlayer
                     src={currentGameState.preview}
                     autoPlayAfterSrcChange
-                    volume={0.3}
+                    volume={0.2}
                   />
                 </Col>
               </Row>
@@ -430,6 +479,57 @@ export default function Lobby() {
       </div>
     );
   } else {
-    return <h1>LNAO</h1>;
+    return (
+      <div className='endOfGame-content'>
+        <Container fluid style={{ padding: '0 2rem' }}>
+          <Row>
+            <Col style={{ minHeight: '80vh' }}>
+              <h1 style={{ color: 'white', marginBottom: '2rem' }}>
+                Final Scores
+              </h1>
+              {players.map((player) => (
+                <Card
+                  variant='dark'
+                  key={player.socket_id}
+                  style={{
+                    width: '9rem',
+                    margin: '1rem',
+                    textAlign: 'center',
+                    background: 'lightgray',
+                  }}
+                >
+                  <Card.Body>
+                    <div>
+                      <i
+                        class='fa fa-user fa-3x'
+                        aria-hidden='true'
+                        style={{ color: '#505050' }}
+                      ></i>
+                    </div>
+                    <div>
+                      {player.name} {player.host && <b>[Host] </b>}
+                    </div>
+                  </Card.Body>
+                </Card>
+              ))}
+            </Col>
+            <Col lg='6' style={{ color: 'White' }}>
+              <h1>Winner: JeLeeButler</h1>
+              <h2>
+                Songs used this Game: (song name, artist, url to Spotify page)
+              </h2>
+              <Button
+                variant='info'
+                onClick={() => {
+                  setRoomState('lobby');
+                }}
+              >
+                Return to Lobby
+              </Button>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    );
   }
 }

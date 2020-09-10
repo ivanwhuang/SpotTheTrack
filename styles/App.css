@@ -220,6 +220,12 @@
   background-color: #fcfcfe;
 }
 
+/* ----------------------- End of Game Page -------------------------*/
+.endOfGame-content {
+  background: #4b545c;
+  padding: 2rem 0;
+}
+
 @media only screen and (max-width: 1200px) {
   .intro-text {
     font-size: 100px;
