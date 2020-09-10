@@ -21,9 +21,9 @@ import {
   Col,
   Button,
   Form,
-  ListGroup,
   Modal,
   Card,
+  Toast,
 } from 'react-bootstrap';
 
 function useSocket(url) {
@@ -52,6 +52,8 @@ export default function Lobby() {
   const socket = useSocket('http://localhost:5000');
 
   const [showModal, setShowModal] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [toastInfo, setToastInfo] = useState({ header: '', text: '' });
   const [name, setName] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [room, setRoom] = useState('');
@@ -99,9 +101,15 @@ export default function Lobby() {
         setSettings(roomInfo.settings);
       });
 
-      // socket.on('updateSettings', (settings) => {
-      //   setSettings(settings);
-      // });
+      socket.on('newUser', (name) => {
+        setToastInfo({ header: 'Welcome!', text: `${name} has joined` });
+        setShowToast(true);
+      });
+
+      socket.on('userDisconnected', (name) => {
+        setToastInfo({ header: 'Bye!', text: `${name} has left` });
+        setShowToast(true);
+      });
 
       socket.on('countdown', ({ serverTime }) => {
         setServerTime(serverTime);
@@ -184,14 +192,18 @@ export default function Lobby() {
   // - game settings
   const handleStartGame = (e) => {
     e.preventDefault();
-    let info = {
-      room,
-      settings: settings,
-    };
-    console.log(info);
-    if (isHost) {
+    if (settings.artists.length > 0) {
+      let info = {
+        room,
+        settings: settings,
+      };
       socket.emit('prepareGame', info);
-      // TODO: add functionality to transfer to game page
+    } else {
+      setToastInfo({
+        header: 'Woops!',
+        text: 'Not enough artists to start game',
+      });
+      setShowToast(true);
     }
   };
 
@@ -292,6 +304,24 @@ export default function Lobby() {
                 </div>
               </Col>
               <Col lg='6'>
+                <Toast
+                  onClose={() => setShowToast(false)}
+                  show={showToast}
+                  delay={4000}
+                  autohide
+                  style={{
+                    position: 'absolute',
+                    top: '0',
+                    right: '20px',
+                    width: '15rem',
+                  }}
+                >
+                  <Toast.Header>
+                    <strong className='mr-auto'>{toastInfo.header}</strong>
+                    <small>{moment().format('LT')}</small>
+                  </Toast.Header>
+                  <Toast.Body>{toastInfo.text}</Toast.Body>
+                </Toast>
                 {isHost ? (
                   <HostSettings
                     updateSettings={updateSettings}

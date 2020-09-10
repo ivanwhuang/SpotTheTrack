@@ -89,6 +89,7 @@ io.on('connection', (socket) => {
 
     // send frontend update room information
     io.in(room).emit('roomInfo', rooms[room]);
+    socket.to(room).emit('newUser', player.name);
   });
 
   socket.on('updateSettings', ({ room, settings }) => {
@@ -199,6 +200,11 @@ io.on('connection', (socket) => {
               io.to(roomOfSocket[socket.id]).emit(
                 'roomInfo',
                 rooms[roomOfSocket[socket.id]]
+              );
+
+              io.to(roomOfSocket[socket.id]).emit(
+                'userDisconnected',
+                socket.nickname
               );
 
               delete roomOfSocket[socket.id];
