@@ -105,15 +105,17 @@ io.on('connection', (socket) => {
 
     // .... Do some prep work
     try {
-      let params = queryString.stringify(
+      let artists = queryString.stringify(
         { artists: settings.artists },
         { arrayFormat: 'bracket' }
       );
+      let limit = queryString.stringify({ limit: settings.numRounds });
       const response = await axios.get(
         'http://localhost:5000/api/spotify/initializeGameState',
         {
           params: {
-            artists: params,
+            artists: artists,
+            limit: limit,
           },
         }
       );
