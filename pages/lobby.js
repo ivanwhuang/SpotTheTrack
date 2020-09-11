@@ -143,6 +143,11 @@ export default function Lobby() {
       });
 
       socket.on('endOfGame', () => {
+        setCurrentGameState({
+          round: null,
+          songName: '',
+          preview: null,
+        });
         setRoomState('endOfGame');
       });
     }
@@ -242,6 +247,7 @@ export default function Lobby() {
         time: moment().format('LT'),
         text: 'Good Job! You guessed the right song!',
       };
+      socket.emit('correctGuess', room);
       setChatLog([...chatLog, correctMsg]);
     } else {
       setCorrectBanner('False! Try Again!');
@@ -431,26 +437,14 @@ export default function Lobby() {
                         {player.name} {player.host && <b>[Host] </b>}
                       </div>
                     </Card.Body>
-                    <Card.Footer></Card.Footer>
+                    <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
+                      {player.score}
+                    </Card.Footer>
                   </Card>
                 ))}
               </div>
             </Col>
             <Col>
-              {/* <div style={{ textAlign: 'center' }}>
-                    <Button>
-                      {serverTime == null ? (
-                        'Game has not started..'
-                      ) : (
-                        <Countdown
-                          date={
-                            Date.now() +
-                            Math.abs(Math.floor(serverTime - Date.now()))
-                          }
-                        />
-                      )}
-                    </Button>
-                  </div> */}
               <h1
                 style={{
                   textAlign: 'center',
@@ -551,6 +545,9 @@ export default function Lobby() {
                       {player.name} {player.host && <b>[Host] </b>}
                     </div>
                   </Card.Body>
+                  <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
+                    {player.score}
+                  </Card.Footer>
                 </Card>
               ))}
             </Col>
@@ -559,14 +556,14 @@ export default function Lobby() {
               <h2>
                 Songs used this Game: (song name, artist, url to Spotify page)
               </h2>
-              <Button
+              {/*<Button
                 variant='info'
                 onClick={() => {
                   setRoomState('lobby');
                 }}
               >
                 Return to Lobby
-              </Button>
+              </Button>*/}
             </Col>
           </Row>
         </Container>
