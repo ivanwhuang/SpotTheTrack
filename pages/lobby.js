@@ -142,6 +142,11 @@ export default function Lobby() {
       });
 
       socket.on('endOfGame', () => {
+        setCurrentGameState({
+          round: null,
+          songName: '',
+          preview: null,
+        });
         setRoomState('endOfGame');
       });
     }
@@ -235,12 +240,13 @@ export default function Lobby() {
       guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()
     ) {
       setCorrectBanner('Correct!');
-      correctMsg = {
+      let correctMsg = {
         name: 'SpotTheTrack',
         isMyself: false,
         time: moment().format('LT'),
         text: 'Good Job! You guessed the right song!',
       };
+      socket.emit('correctGuess', room);
       setChatLog([...chatLog, correctMsg]);
     } else {
       setCorrectBanner('False! Try Again!');
@@ -302,6 +308,9 @@ export default function Lobby() {
                         </div>
                         <div>
                           {player.name} {player.host && <b>[Host] </b>}
+                        </div>
+                        <div>
+                          {player.score}
                         </div>
                       </Card.Body>
                     </Card>
@@ -416,6 +425,9 @@ export default function Lobby() {
                           </div>
                           <div style={{ fontSize: '14px' }}>
                             {player.name} {player.host && <b>[Host] </b>}
+                          </div>
+                          <div>
+                            {player.score}
                           </div>
                         </Card.Body>
                         <Card.Footer></Card.Footer>
@@ -544,6 +556,9 @@ export default function Lobby() {
                     <div>
                       {player.name} {player.host && <b>[Host] </b>}
                     </div>
+                    <div>
+                      {player.score}
+                    </div>
                   </Card.Body>
                 </Card>
               ))}
@@ -553,14 +568,14 @@ export default function Lobby() {
               <h2>
                 Songs used this Game: (song name, artist, url to Spotify page)
               </h2>
-              <Button
+              {/*<Button
                 variant='info'
                 onClick={() => {
                   setRoomState('lobby');
                 }}
               >
                 Return to Lobby
-              </Button>
+              </Button>*/}
             </Col>
           </Row>
         </Container>

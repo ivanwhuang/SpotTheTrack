@@ -58,6 +58,7 @@ io.on('connection', (socket) => {
         numRounds: 10,
         artists: [],
       },
+      correctRoundGuesses: 0,
     };
 
     // socket functionality to join room and tell frontend
@@ -124,23 +125,58 @@ io.on('connection', (socket) => {
       // wait 5 seconds before actually starting the game
       setTimeout(() => {
         let x = 0;
+        rooms[room].correctRoundGuesses = 0;
+        rooms[room].players = rooms[room].players.map((player) => {
+          let ret = {
+            socket_id: player.socket_id,
+            host: player.host,
+            name: player.name,
+            score: 0,
+            answered: false,
+          };
+          return ret;
+        });
         io.in(room).emit('gameStart', { track: data.tracks[x++] });
         console.log((parseInt(settings.timer) + 5) * 1000);
 
         let interval = setInterval(() => {
-          io.in(room).emit('newRound', data.tracks[x++]);
-          // console.log(`emitted new round using ${data.tracks[x]}`);
-          if (x >= parseInt(settings.numRounds)) {
+          if (!(room in rooms)) {
             clearInterval(interval);
-            setTimeout(() => {
-              io.in(room).emit('endOfGame');
-            }, (parseInt(settings.timer) + 1) * 1000);
+          } else {
+            rooms[room].correctRoundGuesses = 0;
+            io.in(room).emit('newRound', data.tracks[x++]);
+            // console.log(`emitted new round using ${data.tracks[x]}`);
+            if (x >= parseInt(settings.numRounds)) {
+              clearInterval(interval);
+              setTimeout(() => {
+                io.in(room).emit('endOfGame');
+              }, (parseInt(settings.timer) + 1) * 1000);
+            }
           }
         }, (parseInt(settings.timer) + 5) * 1000);
       }, 5000);
     } catch (err) {
       console.error(err);
     }
+  });
+
+  socket.on('correctGuess', (room) => {
+    const calcScore = (base, correctGuesses) => {
+      return base * (1 / correctGuesses);
+    };
+
+    rooms[room].correctRoundGuesses++;
+
+    for (let idx = 0; idx < rooms[room].players.length; ++idx) {
+      if (rooms[room].players[idx].socket_id === socket.id) {
+        rooms[room].players[idx].score 
+          += calcScore(100, rooms[room].correctRoundGuesses);
+      }
+    }
+
+    console.log(rooms[room].players);
+
+    io.in(room).emit('roomInfo', rooms[room]);
   });
 
   socket.on('chat', ({ room, name, isMyself, time, text }) => {
@@ -167,7 +203,7 @@ io.on('connection', (socket) => {
 
           try {
             // delete the disconnected socket from memory
-            if (socket.id in roomOfSocket) {
+            if (socket.id in roomOfSocket && roomOfSocket[socket.id] in rooms) {
               // find and delete player associated to socket in rooms
               let players;
               if (roomOfSocket[socket.id] in rooms) {

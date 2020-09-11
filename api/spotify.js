@@ -74,49 +74,47 @@ router.get('/gettrack', (req, res) => {
 // @desc    Returns a list of tracks necessary for the game
 //          to be played
 // @access  Public
-router.get('/initializeGameState', (req, res) => {
-  // NOTE: prototype for choosing a random artist
-  console.log(req.query.artists);
-  console.log(queryString.parse(req.query.artists, {arrayFormat: 'bracket'}));
-  let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
-  console.log(artists);
-  let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
-  console.log(rand_keyword);
+router.get('/initializeGameState', async (req, res) => {
 
-  let limit = '20';
-  spotify.search(
-    {
+  try {
+    // NOTE: prototype for choosing a random artist
+    console.log(req.query.artists);
+    console.log(queryString.parse(req.query.artists, {arrayFormat: 'bracket'}));
+    let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
+    console.log(artists);
+    let rand_keyword = artists[Math.floor(Math.random() * artists.length)];
+    console.log(rand_keyword);
+
+    let limit = '20';
+    let data = await spotify.search({
       type: 'track',
       query: `${rand_keyword}`,
       limit: limit,
-    },
-    function (err, data) {
-      if (err) {
-        return console.log('Error occured:' + err);
-      }
+    });
 
-      let tracksReceived = data['tracks']['items'];
-      let tracks = [];
-      for (let idx = 0; idx < limit; idx++) {
-        if (tracksReceived[idx]['preview_url'] !== null) {
-          let name = data['tracks']['items'][idx]['name'].toString();
-          let filteredName = name.split('(')[0].trim();
-          let track = {
-            name: filteredName,
-            preview: tracksReceived[idx]['preview_url'],
-          };
-          tracks.push(track);
-        }
+    let tracksReceived = data['tracks']['items'];
+    let tracks = [];
+    for (let idx = 0; idx < limit; idx++) {
+      if (tracksReceived[idx]['preview_url'] !== null) {
+        let name = data['tracks']['items'][idx]['name'].toString();
+        let filteredName = name.split('(')[0].trim();
+        let track = {
+          name: filteredName,
+          preview: tracksReceived[idx]['preview_url'],
+        };
+        tracks.push(track);
       }
-      console.log(`Received ${tracks.length} tracks from the search ${rand_keyword}`);
-      console.log(tracks);
-      res.json(
-        JSON.stringify({
-          tracks: tracks,
-        })
-      );
     }
-  );
+    console.log(`Received ${tracks.length} tracks from the search ${rand_keyword}`);
+    console.log(tracks);
+    res.json(
+      JSON.stringify({
+        tracks: tracks,
+      })
+    );
+  } catch(e) {
+    console.log('Error occured:' + e);
+  }
 });
 
 // @route   GET api/spotify/searchArtist
