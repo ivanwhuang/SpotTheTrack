@@ -13,7 +13,8 @@ import moment from 'moment';
 
 import { useRouter } from 'next/router';
 
-import Countdown from 'react-countdown';
+// import Countdown from 'react-countdown';
+import Timer from '../components/timer';
 
 import {
   Container,
@@ -235,7 +236,7 @@ export default function Lobby() {
       guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()
     ) {
       setCorrectBanner('Correct!');
-      correctMsg = {
+      let correctMsg = {
         name: 'SpotTheTrack',
         isMyself: false,
         time: moment().format('LT'),
@@ -383,48 +384,60 @@ export default function Lobby() {
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
-            <Col lg='8'>
+            <Col lg='4' style={{ textAlign: 'center' }}>
+              <h1 style={{ color: 'white' }}>
+                {currentGameState.round === null
+                  ? 'Round starting in ...'
+                  : `Round ${currentGameState.round}`}
+              </h1>
+              <div style={{ margin: '1rem 0' }}>
+                {serverTime == null ? (
+                  'Game has not started..'
+                ) : (
+                  <Timer
+                    duration={Math.floor(serverTime / 1000 - Date.now() / 1000)}
+                  />
+                )}
+              </div>
               <h1 style={{ color: 'white' }}>Players</h1>
-              <Row>
-                <Col>
-                  <div
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
+                {players.map((player) => (
+                  <Card
+                    variant='dark'
+                    key={player.socket_id}
                     style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                      justifyContent: 'center',
+                      width: '8rem',
+                      margin: '0.5rem',
+                      textAlign: 'center',
+                      background: 'lightgray',
                     }}
                   >
-                    {players.map((player) => (
-                      <Card
-                        variant='dark'
-                        key={player.socket_id}
-                        style={{
-                          width: '8rem',
-                          margin: '0.5rem',
-                          textAlign: 'center',
-                          background: 'lightgray',
-                        }}
-                      >
-                        <Card.Body>
-                          <div>
-                            <i
-                              class='fa fa-user fa-2x'
-                              aria-hidden='true'
-                              style={{ color: '#505050' }}
-                            ></i>
-                          </div>
-                          <div style={{ fontSize: '14px' }}>
-                            {player.name} {player.host && <b>[Host] </b>}
-                          </div>
-                        </Card.Body>
-                        <Card.Footer></Card.Footer>
-                      </Card>
-                    ))}
-                  </div>
-                </Col>
-                <Col>
-                  <div style={{ textAlign: 'center' }}>
+                    <Card.Body>
+                      <div>
+                        <i
+                          class='fa fa-user fa-2x'
+                          aria-hidden='true'
+                          style={{ color: '#505050' }}
+                        ></i>
+                      </div>
+                      <div style={{ fontSize: '14px' }}>
+                        {player.name} {player.host && <b>[Host] </b>}
+                      </div>
+                    </Card.Body>
+                    <Card.Footer></Card.Footer>
+                  </Card>
+                ))}
+              </div>
+            </Col>
+            <Col>
+              {/* <div style={{ textAlign: 'center' }}>
                     <Button>
                       {serverTime == null ? (
                         'Game has not started..'
@@ -437,36 +450,29 @@ export default function Lobby() {
                         />
                       )}
                     </Button>
-                  </div>
-                  <h1
-                    style={{
-                      textAlign: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    {correctBanner}
-                  </h1>
-                  <img
-                    src='/images/placeholder.png'
-                    alt='rules1'
-                    style={{
-                      width: '100%',
-                      marginTop: '1rem',
-                      marginBottom: '1rem',
-                    }}
-                  ></img>
-                  <Button color='primary' disabled>
-                    {currentGameState.round === null
-                      ? 'Initializing Game State'
-                      : `Round ${currentGameState.round}`}
-                  </Button>
-                  <AudioPlayer
-                    src={currentGameState.preview}
-                    autoPlayAfterSrcChange
-                    volume={0.2}
-                  />
-                </Col>
-              </Row>
+                  </div> */}
+              <h1
+                style={{
+                  textAlign: 'center',
+                  color: 'white',
+                }}
+              >
+                {correctBanner}
+              </h1>
+              <img
+                src='/images/placeholder.png'
+                alt='rules1'
+                style={{
+                  width: '100%',
+                  marginTop: '1rem',
+                  marginBottom: '1rem',
+                }}
+              ></img>
+              <AudioPlayer
+                src={currentGameState.preview}
+                autoPlayAfterSrcChange
+                volume={0.2}
+              />
             </Col>
             <Col lg='4'>
               <div className='msger'>

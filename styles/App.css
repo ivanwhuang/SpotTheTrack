@@ -226,6 +226,13 @@
   padding: 2rem 0;
 }
 
+/* ----------------------- Timer Component -------------------------*/
+
+.timer-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
 @media only screen and (max-width: 1200px) {
   .intro-text {
     font-size: 100px;
