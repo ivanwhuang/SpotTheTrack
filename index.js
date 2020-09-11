@@ -169,8 +169,10 @@ io.on('connection', (socket) => {
 
     for (let idx = 0; idx < rooms[room].players.length; ++idx) {
       if (rooms[room].players[idx].socket_id === socket.id) {
-        rooms[room].players[idx].score 
-          += calcScore(100, rooms[room].correctRoundGuesses);
+        rooms[room].players[idx].score += calcScore(
+          100,
+          rooms[room].correctRoundGuesses
+        );
       }
     }
 
@@ -186,71 +188,76 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Websocket ' + socket.id + ' has left.');
-    io.of('/')
-      .in(roomOfSocket[socket.id])
-      .clients((err, clients) => {
-        if (err) {
-          console.error(err);
-        } else {
-          let tmpRoomInfo;
-          // delete room if all clients have disconnected from room
-          if (clients.length <= 0) {
-            tmpRoomInfo = rooms[roomOfSocket[socket.id]];
-            console.log(`room to delete: ${roomOfSocket[socket.id]}`);
-            delete rooms[roomOfSocket[socket.id]];
-            console.log(`deleted room: ${rooms[roomOfSocket[socket.id]]}`); // should be undefined
-          }
-
-          try {
-            // delete the disconnected socket from memory
-            if (socket.id in roomOfSocket && roomOfSocket[socket.id] in rooms) {
-              // find and delete player associated to socket in rooms
-              let players;
-              if (roomOfSocket[socket.id] in rooms) {
-                players = rooms[roomOfSocket[socket.id]].players;
-              } else {
-                players = tmpRoomInfo.players;
-              }
-
-              if (
-                players.find((player) => player.socket_id === socket.id).host &&
-                clients.length > 0
-              ) {
-                players = players.filter(
-                  (player) => player.socket_id !== socket.id
-                );
-
-                // change host and tell client
-                players[0].host = true;
-                io.to(players[0].socket_id).emit('changeHost');
-              } else {
-                players = players.filter(
-                  (player) => player.socket_id !== socket.id
-                );
-              }
-
-              // Update room information in server
-              rooms[roomOfSocket[socket.id]].players = players;
-
-              // Update room information in client
-              io.to(roomOfSocket[socket.id]).emit(
-                'roomInfo',
-                rooms[roomOfSocket[socket.id]]
-              );
-
-              io.to(roomOfSocket[socket.id]).emit(
-                'userDisconnected',
-                socket.nickname
-              );
-
-              delete roomOfSocket[socket.id];
-              console.log(`deleted ${socket.id} from memory`);
-            }
-          } catch (err) {
+    if (socket.id in roomOfSocket) {
+      io.of('/')
+        .in(roomOfSocket[socket.id])
+        .clients((err, clients) => {
+          if (err) {
             console.error(err);
+          } else {
+            let tmpRoomInfo;
+            // delete room if all clients have disconnected from room
+            if (clients.length <= 0) {
+              tmpRoomInfo = rooms[roomOfSocket[socket.id]];
+              console.log(`Room will be deleted: ${roomOfSocket[socket.id]}`);
+              delete rooms[roomOfSocket[socket.id]];
+              console.log(`Deleted room: ${rooms[roomOfSocket[socket.id]]}`); // should be undefined
+            }
+
+            try {
+              // delete the disconnected socket from memory
+              if (roomOfSocket[socket.id] in rooms) {
+                // find and delete player associated to socket in rooms
+                let players;
+                if (roomOfSocket[socket.id] in rooms) {
+                  players = rooms[roomOfSocket[socket.id]].players;
+                } else {
+                  players = tmpRoomInfo.players;
+                }
+
+                if (
+                  players.find((player) => player.socket_id === socket.id)
+                    .host &&
+                  clients.length > 0
+                ) {
+                  players = players.filter(
+                    (player) => player.socket_id !== socket.id
+                  );
+
+                  // change host and tell client
+                  players[0].host = true;
+                  io.to(players[0].socket_id).emit('changeHost');
+                } else {
+                  players = players.filter(
+                    (player) => player.socket_id !== socket.id
+                  );
+                }
+
+                // Update room information in server
+                rooms[roomOfSocket[socket.id]].players = players;
+
+                // Update room information in client
+                io.to(roomOfSocket[socket.id]).emit(
+                  'roomInfo',
+                  rooms[roomOfSocket[socket.id]]
+                );
+
+                io.to(roomOfSocket[socket.id]).emit(
+                  'userDisconnected',
+                  socket.nickname
+                );
+              }
+            } catch (err) {
+              console.error(err);
+            }
+
+            delete roomOfSocket[socket.id];
+            console.log(`deleted Websocket ${socket.id} from memory`);
           }
-        }
-      });
+        });
+    } else {
+      console.log('Websocket ' + socket.id + ' was not part of any game room.');
+    }
   });
 });
 
