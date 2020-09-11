@@ -136,24 +136,33 @@ io.on('connection', (socket) => {
           };
           return ret;
         });
-        io.in(room).emit('gameStart', { track: data.tracks[x++] });
-        console.log((parseInt(settings.timer) + 5) * 1000);
+        io.in(room).emit('gameStart', {
+          track: data.tracks[x++],
+          serverTime: Date.now() + settings.timer * 1000,
+        });
+        // console.log((parseInt(settings.timer) + 5) * 1000);
 
         let interval = setInterval(() => {
           if (!(room in rooms)) {
             clearInterval(interval);
           } else {
             rooms[room].correctRoundGuesses = 0;
-            io.in(room).emit('newRound', data.tracks[x++]);
-            // console.log(`emitted new round using ${data.tracks[x]}`);
-            if (x >= parseInt(settings.numRounds)) {
-              clearInterval(interval);
-              setTimeout(() => {
-                io.in(room).emit('endOfGame');
-              }, (parseInt(settings.timer) + 1) * 1000);
-            }
+            io.in(room).emit('countDown', { serverTime: Date.now() + 5000 });
+            setTimeout(() => {
+              io.in(room).emit('newRound', {
+                track: data.tracks[x++],
+                serverTime: Date.now() + settings.timer * 1000,
+              });
+              // console.log(`emitted new round using ${data.tracks[x]}`);
+              if (x >= parseInt(settings.numRounds)) {
+                clearInterval(interval);
+                setTimeout(() => {
+                  io.in(room).emit('endOfGame');
+                }, (parseInt(settings.timer) + 1) * 1000);
+              }
+            }, 5000);
           }
-        }, (parseInt(settings.timer) + 5) * 1000);
+        }, parseInt(settings.timer) * 1000);
       }, 5000);
     } catch (err) {
       console.error(err);

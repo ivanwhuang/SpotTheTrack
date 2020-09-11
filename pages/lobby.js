@@ -14,7 +14,8 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 
 // import Countdown from 'react-countdown';
-import Timer from '../components/timer';
+// import Timer from '../components/timer';
+import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 
 import {
   Container,
@@ -79,7 +80,8 @@ export default function Lobby() {
   const [chatLog, setChatLog] = useState([]);
 
   const [countDown, setCountDown] = useState(null);
-  const [serverTime, setServerTime] = useState(null);
+  // const [serverTime, setServerTime] = useState(null);
+  const [timerKey, setTimerKey] = useState(0);
 
   useEffect(() => {
     if (socket) {
@@ -113,12 +115,14 @@ export default function Lobby() {
       });
 
       socket.on('countdown', ({ serverTime }) => {
-        setServerTime(serverTime);
         setRoomState('game');
+        setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
+        setTimerKey(timerKey + 1);
+        console.log(countDown);
       });
 
       // Prob no longer need this event since it's similar to the newRound event.
-      socket.on('gameStart', ({ track }) => {
+      socket.on('gameStart', ({ track, serverTime }) => {
         if (track != null) {
           let newGameState = {
             round: 1,
@@ -126,16 +130,23 @@ export default function Lobby() {
             preview: track.preview,
           };
           setCurrentGameState(newGameState);
+          setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
+          console.log(countDown);
+          setTimerKey(timerKey + 1);
         }
       });
 
-      socket.on('newRound', (track) => {
+      socket.on('newRound', ({ track, serverTime }) => {
         let newGameState = {
           round: currentGameState.round + 1,
           songName: track.name,
           preview: track.preview,
         };
         setCurrentGameState(newGameState);
+        setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
+        console.log(countDown);
+
+        setTimerKey(timerKey + 1);
       });
 
       socket.on('chat', (newMsg) => {
@@ -150,8 +161,41 @@ export default function Lobby() {
         });
         setRoomState('endOfGame');
       });
+
+      socket.on('disconnect', () => {
+        alert('You have been disconnected');
+        router.push('/');
+      });
     }
-  }, [socket, players, currentGameState, chatLog]);
+  }, [socket, players, currentGameState, chatLog, timerKey]);
+
+  const renderTime = ({ remainingTime }) => {
+    if (remainingTime <= 0) {
+      return (
+        <div style={{ fontSize: '24px', color: 'white' }} className='timer'>
+          Time's up!
+        </div>
+      );
+    }
+
+    if (remainingTime <= 10) {
+      return (
+        <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
+          <div className='text'>You got this!</div>
+          <div className='value'>{remainingTime}</div>
+          <div className='text'>seconds</div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
+        <div className='text'>Remaining</div>
+        <div className='value'>{remainingTime}</div>
+        <div className='text'>seconds</div>
+      </div>
+    );
+  };
 
   const copyInviteLink = () => {
     copy(`http://localhost:3000/lobby?room=${room}`);
@@ -397,12 +441,20 @@ export default function Lobby() {
                   : `Round ${currentGameState.round}`}
               </h1>
               <div style={{ margin: '1rem 0' }}>
-                {serverTime == null ? (
+                {countDown == null ? (
                   'Game has not started..'
                 ) : (
-                  <Timer
-                    duration={Math.floor(serverTime / 1000 - Date.now() / 1000)}
-                  />
+                  <div className='timer-wrapper'>
+                    <CountdownCircleTimer
+                      key={timerKey}
+                      isPlaying
+                      duration={countDown}
+                      colors={[['#17a2b8'], ['#17b8a6']]}
+                      style={{ width: '0' }}
+                    >
+                      {renderTime}
+                    </CountdownCircleTimer>
+                  </div>
                 )}
               </div>
               <h1 style={{ color: 'white' }}>Players</h1>
