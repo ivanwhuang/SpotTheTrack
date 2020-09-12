@@ -11,6 +11,10 @@ var spotify = new Spotify({
   secret: process.env.SPOTIFY_SECRET,
 });
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
 // @route   GET api/spotify
 // @desc    Sample route for Jesse Lee
 // @access  Private
@@ -102,8 +106,9 @@ router.get('/initializeGameState', async (req, res) => {
   let artists = queryString.parse(req.query.artists, { arrayFormat: 'bracket' })
     .artists;
   let limit = queryString.parse(req.query.limit).limit || '20';
+  let searchLimit = '20';
 
-  Promise.all(artists.map((artist) => search('track', artist, limit)))
+  Promise.all(artists.map((artist) => search('track', artist, searchLimit)))
     .then((allData) => {
       let items = allData.map((result) => result.tracks.items);
       let tracks = [];
@@ -132,10 +137,18 @@ router.get('/initializeGameState', async (req, res) => {
               artistsInSong.push(a.name);
             }
             if (randomTrack.preview_url !== null) {
+              let hint1 = getRandomInt(randomTrack.name.length);
+              let hint2 = getRandomInt(randomTrack.name.length);
+              while (hint1 == hint2) {
+                hint2 = getRandomInt(randomTrack.name.length);
+              }
+
               let track = {
                 name: name,
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
+                hint1: hint1,
+                hint2: hint2,
               };
               tracks.push(track);
             }
