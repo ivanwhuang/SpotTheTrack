@@ -75,9 +75,6 @@ router.get('/gettrack', (req, res) => {
 //          to be played
 // @access  Public
 router.get('/initializeGameState', async (req, res) => {
-
-  // try {
-
     const chooseRandom = (arr) => {
       return arr[Math.floor(Math.random() * arr.length) % arr.length];
     };
@@ -102,13 +99,6 @@ router.get('/initializeGameState', async (req, res) => {
       });
     };
 
-    const shuffe = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    };
-
     let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
     let limit = queryString.parse(req.query.limit).limit || '20';
 
@@ -120,7 +110,7 @@ router.get('/initializeGameState', async (req, res) => {
         let filteredItems = items.map((item) => item.filter(track => track.preview_url !== null));
         let ctr = 0;
         filteredItems.forEach((item) => ctr += item.length);
-        console.log(ctr);
+        
         if (ctr < limit) {
           res.json(
             JSON.stringify({
@@ -131,7 +121,6 @@ router.get('/initializeGameState', async (req, res) => {
           while (tracks.length < limit) {
             let randomArtists = chooseRandom(filteredItems);
             let randomTrack = chooseRandom(randomArtists);
-            // console.log(randomTrack);
             let name = randomTrack.name.toString().split('(')[0].trim();
             if (tracks.find((track) => track.name === name)) {
               continue;
@@ -152,7 +141,8 @@ router.get('/initializeGameState', async (req, res) => {
             })
           );
         }
-      });
+      })
+      .catch(err => console.error(err));
 });
 
 // @route   GET api/spotify/searchArtist
