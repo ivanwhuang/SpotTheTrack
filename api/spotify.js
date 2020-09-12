@@ -76,83 +76,83 @@ router.get('/gettrack', (req, res) => {
 // @access  Public
 router.get('/initializeGameState', async (req, res) => {
 
-  try {
+  // try {
 
     const chooseRandom = (arr) => {
-      return arr[Math.floor(Math.random() * arr.length)];
+      return arr[Math.floor(Math.random() * arr.length) % arr.length];
     };
 
-    // NOTE: prototype for choosing a random artist
-    // console.log(req.query.artists);
-    // console.log(queryString.parse(req.query.artists, {arrayFormat: 'bracket'}));
-    let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
-    let limit = queryString.parse(req.query.limit).limit;
-    // console.log(artists);
-    // let rand_keyword = chooseRandom(artists);
-    // console.log(rand_keyword);
-
-    const search = async (type, query, limit) => {
-      return new Promise((resolve) => {
-        resolve(spotify.search({
-          type: type,
-          query: query,
-          limit: limit,
-        }));
+    const search = (type, query, limit) => {
+      return new Promise((resolve, reject) => {
+        spotify
+          .search({
+            type: type,
+            query: query,
+            limit: limit
+          })
+          .then(response => resolve(response))
+          .catch(err => reject(err));
+      })
+      .then(result => {
+        return result;
+      })
+      .catch(err => {
+        console.error(err);
+        return err;
       });
     };
 
-    const asyncFunctions = artists.map((artist) => search('track', artist, limit));
-    const allData = await Promise.all(asyncFunctions);
-    // console.log(allData);
-    // let data = await spotify.search({
-    //   type: 'track',
-    //   query: `${rand_keyword}`,
-    //   limit: limit,
-    // });
-    let items = allData.map((result) => result.tracks.items);
-    // console.log(items);
-    // let tracksReceived = data['tracks']['items'];
-    let tracks = [];
-
-    while (tracks.length < limit) {
-      let randomArtists = chooseRandom(items);
-      let randomTrack = chooseRandom(randomArtists);
-      // console.log(randomTrack);
-      let name = randomTrack.name.toString().split('(')[0].trim();
-      if (tracks.find((track) => track.name === name)) {
-        continue;
-      } else {
-        if (randomTrack.preview_url !== null) {
-          let track = {
-            name: name,
-            preview: randomTrack.preview_url,
-          };
-          tracks.push(track);
-        }
+    const shuffe = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
-    }
-    console.log(tracks);
-    // for (let idx = 0; idx < limit; idx++) {
-    //   if (tracksReceived[idx]['preview_url'] !== null) {
-    //     let name = data['tracks']['items'][idx]['name'].toString();
-    //     let filteredName = name.split('(')[0].trim();
-    //     let track = {
-    //       name: filteredName,
-    //       preview: tracksReceived[idx]['preview_url'],
-    //     };
-    //     tracks.push(track);
-    //   }
-    // }
-    // console.log(`Received ${tracks.length} tracks from the search ${rand_keyword}`);
-    // console.log(tracks);
-    res.json(
-      JSON.stringify({
-        tracks: tracks,
-      })
-    );
-  } catch(e) {
-    console.log('Error occured:' + e);
-  }
+    };
+
+    let artists = queryString.parse(req.query.artists, {arrayFormat: 'bracket'}).artists;
+    let limit = queryString.parse(req.query.limit).limit || '20';
+
+    Promise
+      .all(artists.map((artist) => search('track', artist, limit)))
+      .then(allData => {
+        let items = allData.map((result) => result.tracks.items);
+        let tracks = [];
+        let filteredItems = items.map((item) => item.filter(track => track.preview_url !== null));
+        let ctr = 0;
+        filteredItems.forEach((item) => ctr += item.length);
+        console.log(ctr);
+        if (ctr < limit) {
+          res.json(
+            JSON.stringify({
+              error: "Tracks received less than limit provided."
+            })
+          );
+        } else {
+          while (tracks.length < limit) {
+            let randomArtists = chooseRandom(filteredItems);
+            let randomTrack = chooseRandom(randomArtists);
+            // console.log(randomTrack);
+            let name = randomTrack.name.toString().split('(')[0].trim();
+            if (tracks.find((track) => track.name === name)) {
+              continue;
+            } else {
+              if (randomTrack.preview_url !== null) {
+                let track = {
+                  name: name,
+                  preview: randomTrack.preview_url,
+                };
+                tracks.push(track);
+              }
+            }
+          }
+          console.log(tracks);
+          res.json(
+            JSON.stringify({
+              tracks: tracks,
+            })
+          );
+        }
+      });
 });
 
 // @route   GET api/spotify/searchArtist

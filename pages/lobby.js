@@ -117,6 +117,10 @@ export default function Lobby() {
         setRoomState('game');
       });
 
+      socket.on('numTracksError', () => {
+        console.log("not enough tracks error!!");
+      });
+
       // Prob no longer need this event since it's similar to the newRound event.
       socket.on('gameStart', ({ track }) => {
         if (track != null) {
