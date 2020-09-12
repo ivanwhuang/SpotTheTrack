@@ -13,8 +13,6 @@ import moment from 'moment';
 
 import { useRouter } from 'next/router';
 
-// import Countdown from 'react-countdown';
-// import Timer from '../components/timer';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 
 import {
@@ -71,7 +69,7 @@ export default function Lobby() {
 
   // state to update track
   const [currentGameState, setCurrentGameState] = useState({
-    round: null,
+    round: 0,
     songName: '',
     preview: null,
   });
@@ -114,7 +112,7 @@ export default function Lobby() {
         setShowToast(true);
       });
 
-      socket.on('countdown', ({ serverTime }) => {
+      socket.on('initialCountdown', ({ serverTime }) => {
         setRoomState('game');
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
         setTimerKey(timerKey + 1);
@@ -131,7 +129,6 @@ export default function Lobby() {
           };
           setCurrentGameState(newGameState);
           setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-          console.log(countDown);
           setTimerKey(timerKey + 1);
         }
       });
@@ -144,7 +141,6 @@ export default function Lobby() {
         };
         setCurrentGameState(newGameState);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-        console.log(countDown);
 
         setTimerKey(timerKey + 1);
       });
@@ -155,7 +151,7 @@ export default function Lobby() {
 
       socket.on('endOfGame', () => {
         setCurrentGameState({
-          round: null,
+          round: 0,
           songName: '',
           preview: null,
         });
@@ -170,31 +166,49 @@ export default function Lobby() {
   }, [socket, players, currentGameState, chatLog, timerKey]);
 
   const renderTime = ({ remainingTime }) => {
-    if (remainingTime <= 0) {
-      return (
-        <div style={{ fontSize: '24px', color: 'white' }} className='timer'>
-          Time's up!
-        </div>
-      );
-    }
-
-    if (remainingTime <= 10) {
+    if (currentGameState.round <= 0) {
       return (
         <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
-          <div className='text'>You got this!</div>
-          <div className='value'>{remainingTime}</div>
-          <div className='text'>seconds</div>
+          <div>Starting In</div>
+          <div>{remainingTime}</div>
+          <div>seconds</div>
+        </div>
+      );
+    } else {
+      if (remainingTime <= 0) {
+        return (
+          <div style={{ fontSize: '24px', color: 'white' }}>Time's up!</div>
+        );
+      }
+      if (remainingTime <= 10) {
+        return (
+          <div>
+            <div
+              style={{ fontSize: '20px', textAlign: 'center', color: 'white' }}
+            >
+              You got this!
+            </div>
+            <div
+              style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
+            >
+              {remainingTime}
+            </div>
+            <div
+              style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
+            >
+              seconds
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
+          <div>Remaining</div>
+          <div>{remainingTime}</div>
+          <div>seconds</div>
         </div>
       );
     }
-
-    return (
-      <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
-        <div className='text'>Remaining</div>
-        <div className='value'>{remainingTime}</div>
-        <div className='text'>seconds</div>
-      </div>
-    );
   };
 
   const copyInviteLink = () => {
@@ -435,11 +449,6 @@ export default function Lobby() {
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
             <Col lg='4' style={{ textAlign: 'center' }}>
-              <h1 style={{ color: 'white' }}>
-                {currentGameState.round === null
-                  ? 'Round starting in ...'
-                  : `Round ${currentGameState.round}`}
-              </h1>
               <div style={{ margin: '1rem 0' }}>
                 {countDown == null ? (
                   'Game has not started..'
@@ -449,7 +458,11 @@ export default function Lobby() {
                       key={timerKey}
                       isPlaying
                       duration={countDown}
-                      colors={[['#17a2b8'], ['#17b8a6']]}
+                      colors={
+                        currentGameState.round > 0
+                          ? [['#17a2b8'], ['#17b8a6']]
+                          : [['#EF798A'], ['#F4A7B2']]
+                      }
                       style={{ width: '0' }}
                     >
                       {renderTime}
@@ -496,7 +509,12 @@ export default function Lobby() {
                 ))}
               </div>
             </Col>
-            <Col>
+            <Col style={{ textAlign: 'center' }}>
+              <h1 style={{ color: 'white' }}>
+                {currentGameState.round > 0
+                  ? `Round ${currentGameState.round}`
+                  : 'Game Will Begin Shortly'}
+              </h1>
               <h1
                 style={{
                   textAlign: 'center',

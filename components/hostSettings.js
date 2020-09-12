@@ -117,7 +117,7 @@ export default function HostSetting({ updateSettings, settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={numRounds}
-                  min={5}
+                  min={2}
                   max={20}
                   step={1}
                   size='lg'

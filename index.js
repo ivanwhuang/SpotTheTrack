@@ -119,48 +119,43 @@ io.on('connection', (socket) => {
       );
       const data = JSON.parse(response.data);
 
+      let x = 0;
+      rooms[room].correctRoundGuesses = 0;
+      rooms[room].players = rooms[room].players.map((player) => {
+        let ret = {
+          socket_id: player.socket_id,
+          host: player.host,
+          name: player.name,
+          score: 0,
+          answered: false,
+        };
+        return ret;
+      });
+
       // send countdown to clients in room
-      io.in(room).emit('countdown', { serverTime: Date.now() + 5000 });
+      io.in(room).emit('initialCountdown', { serverTime: Date.now() + 5000 });
 
       // wait 5 seconds before actually starting the game
       setTimeout(() => {
-        let x = 0;
-        rooms[room].correctRoundGuesses = 0;
-        rooms[room].players = rooms[room].players.map((player) => {
-          let ret = {
-            socket_id: player.socket_id,
-            host: player.host,
-            name: player.name,
-            score: 0,
-            answered: false,
-          };
-          return ret;
-        });
-        io.in(room).emit('gameStart', {
+        io.in(room).emit('newRound', {
           track: data.tracks[x++],
           serverTime: Date.now() + settings.timer * 1000,
         });
-        // console.log((parseInt(settings.timer) + 5) * 1000);
 
         let interval = setInterval(() => {
           if (!(room in rooms)) {
             clearInterval(interval);
           } else {
-            rooms[room].correctRoundGuesses = 0;
-            io.in(room).emit('countDown', { serverTime: Date.now() + 5000 });
-            setTimeout(() => {
+            if (x >= parseInt(settings.numRounds)) {
+              clearInterval(interval);
+              io.in(room).emit('endOfGame');
+            } else {
+              rooms[room].correctRoundGuesses = 0;
               io.in(room).emit('newRound', {
                 track: data.tracks[x++],
                 serverTime: Date.now() + settings.timer * 1000,
               });
-              // console.log(`emitted new round using ${data.tracks[x]}`);
-              if (x >= parseInt(settings.numRounds)) {
-                clearInterval(interval);
-                setTimeout(() => {
-                  io.in(room).emit('endOfGame');
-                }, (parseInt(settings.timer) + 1) * 1000);
-              }
-            }, 5000);
+            }
           }
         }, parseInt(settings.timer) * 1000);
       }, 5000);
