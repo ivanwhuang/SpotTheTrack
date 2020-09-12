@@ -26,7 +26,10 @@ var rooms = {};
 // global variable keeping track of the room for each socket
 var roomOfSocket = {};
 
-const io = socketio(server);
+const io = socketio(server, {
+  pingInterval: 60000,
+  pingTimeout: 60000
+});
 
 io.on('connection', (socket) => {
   console.log('New websocket connection: ' + socket.id);
@@ -105,60 +108,66 @@ io.on('connection', (socket) => {
 
     // .... Do some prep work
     try {
-      let params = queryString.stringify(
+      let artists = queryString.stringify(
         { artists: settings.artists },
         { arrayFormat: 'bracket' }
       );
+      let limit = queryString.stringify({ limit: settings.numRounds });
       const response = await axios.get(
         'http://localhost:5000/api/spotify/initializeGameState',
         {
           params: {
-            artists: params,
+            artists: artists,
+            limit: limit,
           },
         }
       );
       const data = JSON.parse(response.data);
-
-      let x = 0;
-      rooms[room].correctRoundGuesses = 0;
-      rooms[room].players = rooms[room].players.map((player) => {
-        let ret = {
-          socket_id: player.socket_id,
-          host: player.host,
-          name: player.name,
-          score: 0,
-          answered: false,
-        };
-        return ret;
-      });
-
-      // send countdown to clients in room
-      io.in(room).emit('initialCountdown', { serverTime: Date.now() + 5000 });
-
-      // wait 5 seconds before actually starting the game
-      setTimeout(() => {
-        io.in(room).emit('newRound', {
-          track: data.tracks[x++],
-          serverTime: Date.now() + settings.timer * 1000,
+      
+      if ("error" in data) {
+        socket.emit('numTracksError');
+      } else {
+        let x = 0;
+        rooms[room].correctRoundGuesses = 0;
+        rooms[room].players = rooms[room].players.map((player) => {
+          let ret = {
+            socket_id: player.socket_id,
+            host: player.host,
+            name: player.name,
+            score: 0,
+            answered: false,
+          };
+          return ret;
         });
 
-        let interval = setInterval(() => {
-          if (!(room in rooms)) {
-            clearInterval(interval);
-          } else {
-            if (x >= parseInt(settings.numRounds)) {
+        // send countdown to clients in room
+        io.in(room).emit('initialCountdown', { serverTime: Date.now() + 5000 });
+
+        // wait 5 seconds before actually starting the game
+        setTimeout(() => {
+          io.in(room).emit('newRound', {
+            track: data.tracks[x++],
+            serverTime: Date.now() + settings.timer * 1000,
+          });
+
+          let interval = setInterval(() => {
+            if (!(room in rooms)) {
               clearInterval(interval);
-              io.in(room).emit('endOfGame');
             } else {
-              rooms[room].correctRoundGuesses = 0;
-              io.in(room).emit('newRound', {
-                track: data.tracks[x++],
-                serverTime: Date.now() + settings.timer * 1000,
-              });
+              if (x >= parseInt(settings.numRounds)) {
+                clearInterval(interval);
+                io.in(room).emit('endOfGame');
+              } else {
+                rooms[room].correctRoundGuesses = 0;
+                io.in(room).emit('newRound', {
+                  track: data.tracks[x++],
+                  serverTime: Date.now() + settings.timer * 1000,
+                });
+              }
             }
-          }
-        }, parseInt(settings.timer) * 1000);
-      }, 5000);
+          }, parseInt(settings.timer) * 1000);
+        }, 5000);
+      }
     } catch (err) {
       console.error(err);
     }

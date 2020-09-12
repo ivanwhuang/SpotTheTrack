@@ -119,6 +119,10 @@ export default function Lobby() {
         console.log(countDown);
       });
 
+      socket.on('numTracksError', () => {
+        console.log("not enough tracks error!!");
+      });
+
       // Prob no longer need this event since it's similar to the newRound event.
       socket.on('gameStart', ({ track, serverTime }) => {
         if (track != null) {
