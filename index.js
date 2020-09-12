@@ -28,7 +28,7 @@ var roomOfSocket = {};
 
 const io = socketio(server, {
   pingInterval: 60000,
-  pingTimeout: 60000
+  pingTimeout: 60000,
 });
 
 io.on('connection', (socket) => {
@@ -123,8 +123,8 @@ io.on('connection', (socket) => {
         }
       );
       const data = JSON.parse(response.data);
-      
-      if ("error" in data) {
+
+      if ('error' in data) {
         socket.emit('numTracksError');
       } else {
         let x = 0;
@@ -141,12 +141,15 @@ io.on('connection', (socket) => {
         });
 
         // send countdown to clients in room
-        io.in(room).emit('initialCountdown', { serverTime: Date.now() + 5000 });
+        io.in(room).emit('initialCountdown', {
+          serverTime: Date.now() + 5000,
+          trackList: data.tracks,
+        });
 
         // wait 5 seconds before actually starting the game
         setTimeout(() => {
           io.in(room).emit('newRound', {
-            track: data.tracks[x++],
+            trackIndex: x++,
             serverTime: Date.now() + settings.timer * 1000,
           });
 
@@ -160,7 +163,7 @@ io.on('connection', (socket) => {
               } else {
                 rooms[room].correctRoundGuesses = 0;
                 io.in(room).emit('newRound', {
-                  track: data.tracks[x++],
+                  trackIndex: x++,
                   serverTime: Date.now() + settings.timer * 1000,
                 });
               }

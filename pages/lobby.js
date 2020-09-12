@@ -24,6 +24,7 @@ import {
   Modal,
   Card,
   Toast,
+  ListGroup,
 } from 'react-bootstrap';
 
 function useSocket(url) {
@@ -61,7 +62,7 @@ export default function Lobby() {
   const [socketId, setSocketId] = useState('');
   const [settings, setSettings] = useState({
     timer: 60,
-    numRounds: 10,
+    numRounds: 5,
     artists: [],
   });
 
@@ -70,21 +71,19 @@ export default function Lobby() {
   // state to update track
   const [currentGameState, setCurrentGameState] = useState({
     round: 0,
-    songName: '',
-    preview: null,
+    trackIndex: -1,
   });
+  const [trackList, setTrackList] = useState([]);
   const [correctBanner, setCorrectBanner] = useState('');
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
 
   const [countDown, setCountDown] = useState(null);
-  // const [serverTime, setServerTime] = useState(null);
   const [timerKey, setTimerKey] = useState(0);
 
   useEffect(() => {
     if (socket) {
       socket.on('connect', () => {
-        console.log(socket.id);
         setSocketId(socket.id);
       });
 
@@ -112,24 +111,25 @@ export default function Lobby() {
         setShowToast(true);
       });
 
-      socket.on('initialCountdown', ({ serverTime }) => {
+      socket.on('initialCountdown', ({ serverTime, trackList }) => {
+        setTrackList(trackList);
+        console.log(trackList);
+        console.log(trackList[0].preview);
         setRoomState('game');
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
         setTimerKey(timerKey + 1);
-        console.log(countDown);
       });
 
       socket.on('numTracksError', () => {
-        console.log("not enough tracks error!!");
+        console.log('not enough tracks error!!');
       });
 
       // Prob no longer need this event since it's similar to the newRound event.
-      socket.on('gameStart', ({ track, serverTime }) => {
+      socket.on('gameStart', ({ trackIndex, serverTime }) => {
         if (track != null) {
           let newGameState = {
             round: 1,
-            songName: track.name,
-            preview: track.preview,
+            trackIndex: trackIndex,
           };
           setCurrentGameState(newGameState);
           setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
@@ -137,11 +137,10 @@ export default function Lobby() {
         }
       });
 
-      socket.on('newRound', ({ track, serverTime }) => {
+      socket.on('newRound', ({ trackIndex, serverTime }) => {
         let newGameState = {
           round: currentGameState.round + 1,
-          songName: track.name,
-          preview: track.preview,
+          trackIndex: trackIndex,
         };
         setCurrentGameState(newGameState);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
@@ -156,8 +155,7 @@ export default function Lobby() {
       socket.on('endOfGame', () => {
         setCurrentGameState({
           round: 0,
-          songName: '',
-          preview: null,
+          trackIndex: -1,
         });
         setRoomState('endOfGame');
       });
@@ -300,7 +298,8 @@ export default function Lobby() {
   const handleGuessSubmit = (e) => {
     e.preventDefault();
     if (
-      guess.trim().toLowerCase() === currentGameState.songName.toLowerCase()
+      guess.trim().toLowerCase() ===
+      trackList[currentGameState.trackIndex].songName.toLowerCase()
     ) {
       setCorrectBanner('Correct!');
       let correctMsg = {
@@ -537,7 +536,11 @@ export default function Lobby() {
                 }}
               ></img>
               <AudioPlayer
-                src={currentGameState.preview}
+                src={
+                  currentGameState.trackIndex >= 0
+                    ? trackList[currentGameState.trackIndex].preview
+                    : null
+                }
                 autoPlayAfterSrcChange
                 volume={0.2}
               />
@@ -627,17 +630,25 @@ export default function Lobby() {
             </Col>
             <Col lg='6' style={{ color: 'White' }}>
               <h1>Winner: JeLeeButler</h1>
-              <h2>
-                Songs used this Game: (song name, artist, url to Spotify page)
-              </h2>
-              {/*<Button
-                variant='info'
-                onClick={() => {
-                  setRoomState('lobby');
-                }}
-              >
-                Return to Lobby
-              </Button>*/}
+              <h4>Songs used this Game:</h4>
+              <ListGroup>
+                {trackList.map((track) => (
+                  <ListGroup.Item
+                    variant='light'
+                    key={track.name}
+                    style={{
+                      border: '1px solid rgba(0, 0, 0, 0.3)',
+                      color: '#212529',
+                    }}
+                  >
+                    <b>
+                      {index}
+                      {track.name}
+                    </b>{' '}
+                    - {track.artists.map((artist) => `${artist.name}, `)}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
             </Col>
           </Row>
         </Container>

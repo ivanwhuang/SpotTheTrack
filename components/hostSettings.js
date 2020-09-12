@@ -100,7 +100,7 @@ export default function HostSetting({ updateSettings, settings }) {
                 <RangeSlider
                   value={timer}
                   min={30}
-                  max={120}
+                  max={90}
                   step={10}
                   size='lg'
                   tooltipPlacement='top'
@@ -118,7 +118,7 @@ export default function HostSetting({ updateSettings, settings }) {
                 <RangeSlider
                   value={numRounds}
                   min={2}
-                  max={20}
+                  max={8}
                   step={1}
                   size='lg'
                   tooltipPlacement='top'
