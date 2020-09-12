@@ -23,8 +23,8 @@ export default function Settings({ settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={timer}
-                  min={30}
-                  max={120}
+                  min={20}
+                  max={90}
                   step={10}
                   size='lg'
                   tooltipPlacement='top'
@@ -40,8 +40,8 @@ export default function Settings({ settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={numRounds}
-                  min={5}
-                  max={20}
+                  min={2}
+                  max={8}
                   step={1}
                   size='lg'
                   tooltipPlacement='top'

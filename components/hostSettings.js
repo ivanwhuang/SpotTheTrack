@@ -99,7 +99,7 @@ export default function HostSetting({ updateSettings, settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={timer}
-                  min={30}
+                  min={20}
                   max={90}
                   step={10}
                   size='lg'

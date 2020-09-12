@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
       players: [host],
       settings: {
         timer: 60,
-        numRounds: 10,
+        numRounds: 5,
         artists: [],
       },
       correctRoundGuesses: 0,
@@ -178,7 +178,7 @@ io.on('connection', (socket) => {
 
   socket.on('correctGuess', (room) => {
     const calcScore = (base, correctGuesses) => {
-      return base * (1 / correctGuesses);
+      return Math.floor(base * Math.pow(0.8, correctGuesses));
     };
 
     rooms[room].correctRoundGuesses++;
@@ -186,7 +186,7 @@ io.on('connection', (socket) => {
     for (let idx = 0; idx < rooms[room].players.length; ++idx) {
       if (rooms[room].players[idx].socket_id === socket.id) {
         rooms[room].players[idx].score += calcScore(
-          100,
+          125,
           rooms[room].correctRoundGuesses
         );
       }

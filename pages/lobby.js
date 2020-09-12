@@ -74,6 +74,8 @@ export default function Lobby() {
     trackIndex: -1,
   });
   const [trackList, setTrackList] = useState([]);
+  const [winners, setWinners] = useState([]);
+
   const [correctBanner, setCorrectBanner] = useState('');
   const [guess, setGuess] = useState('');
   const [chatLog, setChatLog] = useState([]);
@@ -113,8 +115,6 @@ export default function Lobby() {
 
       socket.on('initialCountdown', ({ serverTime, trackList }) => {
         setTrackList(trackList);
-        console.log(trackList);
-        console.log(trackList[0].preview);
         setRoomState('game');
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
         setTimerKey(timerKey + 1);
@@ -157,12 +157,23 @@ export default function Lobby() {
           round: 0,
           trackIndex: -1,
         });
+        let highScore = 0;
+        let gameWinners = [];
+        players.forEach((player) => {
+          if (player.score >= highScore) {
+            gameWinners.push(player.name);
+            highScore = player.score;
+          }
+        });
+
+        setWinners(gameWinners);
         setRoomState('endOfGame');
       });
 
       socket.on('disconnect', () => {
-        alert('You have been disconnected');
-        router.push('/');
+        // alert('You have been disconnected');
+        // router.push('/');
+        console.log('you have been disconncted');
       });
     }
   }, [socket, players, currentGameState, chatLog, timerKey]);
@@ -299,7 +310,7 @@ export default function Lobby() {
     e.preventDefault();
     if (
       guess.trim().toLowerCase() ===
-      trackList[currentGameState.trackIndex].songName.toLowerCase()
+      trackList[currentGameState.trackIndex].name.toLowerCase()
     ) {
       setCorrectBanner('Correct!');
       let correctMsg = {
@@ -599,56 +610,64 @@ export default function Lobby() {
               <h1 style={{ color: 'white', marginBottom: '2rem' }}>
                 Final Scores
               </h1>
-              {players.map((player) => (
-                <Card
-                  variant='dark'
-                  key={player.socket_id}
-                  style={{
-                    width: '9rem',
-                    margin: '1rem',
-                    textAlign: 'center',
-                    background: 'lightgray',
-                  }}
-                >
-                  <Card.Body>
-                    <div>
-                      <i
-                        class='fa fa-user fa-3x'
-                        aria-hidden='true'
-                        style={{ color: '#505050' }}
-                      ></i>
-                    </div>
-                    <div>
-                      {player.name} {player.host && <b>[Host] </b>}
-                    </div>
-                  </Card.Body>
-                  <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
-                    {player.score}
-                  </Card.Footer>
-                </Card>
-              ))}
-            </Col>
-            <Col lg='6' style={{ color: 'White' }}>
-              <h1>Winner: JeLeeButler</h1>
-              <h4>Songs used this Game:</h4>
-              <ListGroup>
-                {trackList.map((track) => (
-                  <ListGroup.Item
-                    variant='light'
-                    key={track.name}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                }}
+              >
+                {players.map((player) => (
+                  <Card
+                    variant='dark'
+                    key={player.socket_id}
                     style={{
-                      border: '1px solid rgba(0, 0, 0, 0.3)',
-                      color: '#212529',
+                      width: '9rem',
+                      margin: '1rem',
+                      textAlign: 'center',
+                      background: 'lightgray',
                     }}
                   >
-                    <b>
-                      {index}
-                      {track.name}
-                    </b>{' '}
-                    - {track.artists.map((artist) => `${artist.name}, `)}
-                  </ListGroup.Item>
+                    <Card.Body>
+                      <div>
+                        <i
+                          class='fa fa-user fa-3x'
+                          aria-hidden='true'
+                          style={{ color: '#505050' }}
+                        ></i>
+                      </div>
+                      <div>
+                        {player.name} {player.host && <b>[Host] </b>}
+                      </div>
+                    </Card.Body>
+                    <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
+                      {player.score}
+                    </Card.Footer>
+                  </Card>
                 ))}
-              </ListGroup>
+              </div>
+            </Col>
+            <Col lg='6' style={{ color: 'White' }}>
+              <h1>Winner(s): {winners.join(', ')}</h1>
+              <div style={{ margin: '2rem 0' }}>
+                <h4>Songs used this Game:</h4>
+                <ListGroup>
+                  {trackList.map((track) => (
+                    <ListGroup.Item
+                      variant='light'
+                      key={track.name}
+                      style={{
+                        border: '1px solid rgba(0, 0, 0, 0.3)',
+                        color: '#212529',
+                      }}
+                    >
+                      <b>{track.name}</b> -{' '}
+                      {track.artists.map((artist) => `${artist.name}, `)}
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </div>
             </Col>
           </Row>
         </Container>
