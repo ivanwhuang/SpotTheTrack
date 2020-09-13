@@ -137,18 +137,49 @@ router.get('/initializeGameState', async (req, res) => {
               artistsInSong.push(a.name);
             }
             if (randomTrack.preview_url !== null) {
-              let hint1 = getRandomInt(randomTrack.name.length);
-              let hint2 = getRandomInt(randomTrack.name.length);
-              while (hint1 == hint2) {
-                hint2 = getRandomInt(randomTrack.name.length);
+              let hint1Index = getRandomInt(randomTrack.name.length);
+              while (name[hint1Index] == ' ') {
+                hint1Index = getRandomInt(randomTrack.name.length);
+              }
+              let hint2Index = getRandomInt(randomTrack.name.length);
+              while (hint1Index == hint2Index || name[hint2Index] == ' ') {
+                hint2Index = getRandomInt(randomTrack.name.length);
+              }
+
+              let noHintStr = [];
+              let hintStr1 = [];
+              let hintStr2 = [];
+              for (let i = 0; i < name.length; i++) {
+                if (i == hint1Index) {
+                  noHintStr.push('_');
+                  hintStr1.push(name[i]);
+                  hintStr2.push(name[i]);
+                } else if (i == hint2Index) {
+                  noHintStr.push('_');
+                  hintStr1.push('_');
+                  hintStr2.push(name[i]);
+                } else if (name[i] === ' ') {
+                  noHintStr.push(' ');
+                  hintStr1.push(' ');
+                  hintStr2.push(' ');
+                } else if (name[i] === '-') {
+                  noHintStr.push('-');
+                  hintStr1.push('-');
+                  hintStr2.push('-');
+                } else {
+                  noHintStr.push('_');
+                  hintStr1.push('_');
+                  hintStr2.push('_');
+                }
               }
 
               let track = {
                 name: name,
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
-                hint1: hint1,
-                hint2: hint2,
+                noHintStr: noHintStr,
+                hintStr1: hintStr1,
+                hintStr2: hintStr2,
               };
               tracks.push(track);
             }

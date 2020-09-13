@@ -74,6 +74,7 @@ export default function Lobby() {
     trackIndex: -1,
   });
   const [trackList, setTrackList] = useState([]);
+  const [hint, setHint] = useState([]);
   const [winners, setWinners] = useState([]);
 
   const [correctBanner, setCorrectBanner] = useState('');
@@ -124,19 +125,6 @@ export default function Lobby() {
         console.log('not enough tracks error!!');
       });
 
-      // Prob no longer need this event since it's similar to the newRound event.
-      socket.on('gameStart', ({ trackIndex, serverTime }) => {
-        if (track != null) {
-          let newGameState = {
-            round: 1,
-            trackIndex: trackIndex,
-          };
-          setCurrentGameState(newGameState);
-          setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-          setTimerKey(timerKey + 1);
-        }
-      });
-
       socket.on('newRound', ({ trackIndex, serverTime }) => {
         let newGameState = {
           round: currentGameState.round + 1,
@@ -144,7 +132,6 @@ export default function Lobby() {
         };
         setCurrentGameState(newGameState);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-
         setTimerKey(timerKey + 1);
       });
 
@@ -176,7 +163,7 @@ export default function Lobby() {
         console.log('you have been disconncted');
       });
     }
-  }, [socket, players, currentGameState, chatLog, timerKey]);
+  }, [socket, players, currentGameState, trackList, chatLog, timerKey]);
 
   const renderTime = ({ remainingTime }) => {
     if (currentGameState.round <= 0) {
@@ -192,35 +179,24 @@ export default function Lobby() {
         return (
           <div style={{ fontSize: '24px', color: 'white' }}>Time's up!</div>
         );
-      }
-      if (remainingTime <= 10) {
+      } else {
+        if (remainingTime <= Math.floor(settings.timer / 3)) {
+          setHint(trackList[currentGameState.trackIndex].hintStr2);
+        } else if (remainingTime <= Math.floor(settings.timer / 3) * 2) {
+          setHint(trackList[currentGameState.trackIndex].hintStr1);
+        } else {
+          setHint(trackList[currentGameState.trackIndex].noHintStr);
+        }
         return (
-          <div>
-            <div
-              style={{ fontSize: '20px', textAlign: 'center', color: 'white' }}
-            >
-              You got this!
-            </div>
-            <div
-              style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
-            >
-              {remainingTime}
-            </div>
-            <div
-              style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
-            >
-              seconds
-            </div>
+          <div
+            style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
+          >
+            <div>Remaining</div>
+            <div>{remainingTime}</div>
+            <div>seconds</div>
           </div>
         );
       }
-      return (
-        <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
-          <div>Remaining</div>
-          <div>{remainingTime}</div>
-          <div>seconds</div>
-        </div>
-      );
     }
   };
 
@@ -308,21 +284,25 @@ export default function Lobby() {
 
   const handleGuessSubmit = (e) => {
     e.preventDefault();
-    if (
-      guess.trim().toLowerCase() ===
-      trackList[currentGameState.trackIndex].name.toLowerCase()
-    ) {
-      setCorrectBanner('Correct!');
-      let correctMsg = {
-        name: 'SpotTheTrack',
-        isMyself: false,
-        time: moment().format('LT'),
-        text: 'Good Job! You guessed the right song!',
-      };
-      socket.emit('correctGuess', room);
-      setChatLog([...chatLog, correctMsg]);
+    if (currentGameState.trackIndex >= 0) {
+      if (
+        guess.trim().toLowerCase() ===
+        trackList[currentGameState.trackIndex].name.toLowerCase()
+      ) {
+        setCorrectBanner('Correct!');
+        let correctMsg = {
+          name: 'SpotTheTrack',
+          isMyself: false,
+          time: moment().format('LT'),
+          text: 'Good Job! You guessed the right song!',
+        };
+        socket.emit('correctGuess', room);
+        setChatLog([...chatLog, correctMsg]);
+      } else {
+        setCorrectBanner('False! Try Again!');
+        addToChatLog(guess);
+      }
     } else {
-      setCorrectBanner('False! Try Again!');
       addToChatLog(guess);
     }
     setGuess('');
@@ -335,9 +315,7 @@ export default function Lobby() {
           <Container fluid style={{ padding: '0 2rem' }}>
             <Row>
               <Col style={{ minHeight: '80vh' }}>
-                <h1 style={{ color: 'white', marginBottom: '2rem' }}>
-                  Game Lobby
-                </h1>
+                <h1 style={{ color: 'white', marginBottom: '2rem' }}></h1>
                 <h5 style={{ color: 'white' }}>Room ID:</h5>
                 <p style={{ color: 'lightGray' }}>{room}</p>
                 <h5 style={{ color: 'white' }}>
@@ -529,14 +507,22 @@ export default function Lobby() {
                   ? `Round ${currentGameState.round}`
                   : 'Game Will Begin Shortly'}
               </h1>
-              <h1
+              <h4
                 style={{
                   textAlign: 'center',
                   color: 'white',
                 }}
               >
                 {correctBanner}
-              </h1>
+              </h4>
+              <div style={{ color: 'white' }}>
+                <h1>
+                  {currentGameState.trackIndex >= 0 &&
+                    hint.map((c) =>
+                      c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
+                    )}
+                </h1>
+              </div>
               <img
                 src='/images/placeholder.png'
                 alt='rules1'
