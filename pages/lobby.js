@@ -14,6 +14,7 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
+import Blur from 'react-blur-image';
 
 import {
   Container,
@@ -523,24 +524,33 @@ export default function Lobby() {
                     )}
                 </h1>
               </div>
-              <img
-                src='/images/placeholder.png'
-                alt='rules1'
-                style={{
-                  width: '100%',
-                  marginTop: '1rem',
-                  marginBottom: '1rem',
-                }}
-              ></img>
-              <AudioPlayer
-                src={
-                  currentGameState.trackIndex >= 0
-                    ? trackList[currentGameState.trackIndex].preview
-                    : null
-                }
-                autoPlayAfterSrcChange
-                volume={0.2}
-              />
+              <div>
+                <Blur 
+                  className='test-image'
+                  img='https://i.scdn.co/image/107819f5dc557d5d0a4b216781c6ec1b2f3c5ab2' 
+                  blurRadius={13}
+                  style={{
+                    width: 300,
+                    height: 300,
+                    marginLeft: 'auto',
+                    marginRight: 'auto'
+                  }}>
+                  {}
+                </Blur>
+                <AudioPlayer
+                  src={
+                    currentGameState.trackIndex >= 0
+                      ? trackList[currentGameState.trackIndex].preview
+                      : null
+                  }
+                  autoPlayAfterSrcChange
+                  volume={0.2}
+                  style={{
+                    marginLeft: 'auto',
+                    marginRight: 'auto'
+                  }}
+                />
+              </div>
             </Col>
             <Col lg='4'>
               <div className='msger'>

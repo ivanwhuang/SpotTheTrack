@@ -4,6 +4,7 @@ import axios from 'axios';
 import React, { useRef } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
 import { Form } from 'react-bootstrap';
+import Blur from 'react-blur-image';
 
 const initialFormData = Object.freeze({
   guess: "",
@@ -85,7 +86,26 @@ export default function Test() {
       <Button color="primary" disabled>
         { !tracks ? 'Initializing Game State' : `Round ${currentTrack + 1}` }
       </Button>
-      <AudioPlayer src={ preview } />
+      <div>
+        <Blur 
+          className='test-image'
+          img='https://i.scdn.co/image/ab67616d0000b2730cc2c0be77213ebb75fa6828' 
+          blurRadius={25}
+          style={{
+            width: 640,
+            height: 640,
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }}>
+          {}
+        </Blur>
+        <AudioPlayer src={ preview } style={{
+            width: 640,
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }} />
+      </div>
+      
 
       <Link href="/"> 
         <Button color="secondary">
@@ -102,7 +122,6 @@ export default function Test() {
           <Button color="primary" onClick={handleSubmit}>Submit</Button>
         </form>
       </div>
-      
     </div>
   );
 }

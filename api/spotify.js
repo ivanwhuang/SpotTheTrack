@@ -117,7 +117,7 @@ router.get('/initializeGameState', async (req, res) => {
       );
       let ctr = 0;
       filteredItems.forEach((item) => (ctr += item.length));
-
+      console.log(filteredItems[0][0].album.images[0]);
       if (ctr < limit) {
         res.json(
           JSON.stringify({
