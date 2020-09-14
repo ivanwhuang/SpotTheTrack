@@ -53,6 +53,8 @@ export default function Lobby() {
 
   const socket = useSocket('http://localhost:5000');
 
+  const [socketConnected, setSocketConnected] = useState(false);
+
   const [showModal, setShowModal] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastInfo, setToastInfo] = useState({ header: '', text: '' });
@@ -60,7 +62,6 @@ export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
-  const [socketId, setSocketId] = useState('');
   const [settings, setSettings] = useState({
     timer: 60,
     numRounds: 5,
@@ -71,12 +72,11 @@ export default function Lobby() {
 
   // state to update track
   const [currentGameState, setCurrentGameState] = useState({
-    round: 0,
+    round: -1,
     track: '',
   });
   const [trackList, setTrackList] = useState([]);
   const [hint, setHint] = useState([]);
-  const [winners, setWinners] = useState([]);
 
   const [correctBanner, setCorrectBanner] = useState('');
   const [guess, setGuess] = useState('');
@@ -87,9 +87,9 @@ export default function Lobby() {
   const [timerKey, setTimerKey] = useState(0);
 
   useEffect(() => {
-    if (socket) {
+    if (socket && !socketConnected) {
       socket.on('connect', () => {
-        setSocketId(socket.id);
+        setSocketConnected(true);
       });
 
       socket.on('roomCode', (newRoom) => {
@@ -106,6 +106,14 @@ export default function Lobby() {
         setSettings(roomInfo.settings);
       });
 
+      socket.on('playerInfo', (players) => {
+        setPlayers(players);
+      });
+
+      socket.on('updateSettings', (settings) => {
+        setSettings(settings);
+      });
+
       socket.on('newUser', (name) => {
         setToastInfo({ header: 'Welcome!', text: `${name} has joined` });
         setShowToast(true);
@@ -116,12 +124,15 @@ export default function Lobby() {
         setShowToast(true);
       });
 
-      socket.on('initialCountdown', ({ serverTime, trackList }) => {
-        setTrackList(trackList);
-        setRoomState('game');
-        setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-        setTimerKey(timerKey + 1);
-      });
+      socket.on(
+        'initialCountdown',
+        ({ initialTimerKey, serverTime, trackList }) => {
+          setTrackList(trackList);
+          setRoomState('game');
+          setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
+          setTimerKey(initialTimerKey);
+        }
+      );
 
       socket.on('numTracksError', (artists) => {
         setToastInfo({
@@ -131,49 +142,40 @@ export default function Lobby() {
         setShowToast(true);
       });
 
-      socket.on('newRound', ({ track, serverTime }) => {
+      socket.on('newRound', ({ round, track, serverTime, roundChat }) => {
         setHint(track.noHintStr);
+        setChatLog(roundChat);
         setCorrectBanner('');
         let newGameState = {
-          round: currentGameState.round + 1,
+          round: round,
           track: track,
         };
 
         setCurrentGameState(newGameState);
         setAnswered(false);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
-        setTimerKey(timerKey + 1);
+        setTimerKey(round);
       });
 
-      socket.on('chat', (newMsg) => {
-        setChatLog([...chatLog, newMsg]);
+      socket.on('chat', (roundChat) => {
+        setChatLog(roundChat);
       });
 
       socket.on('endOfGame', () => {
         setCurrentGameState({
-          round: 0,
+          round: -1,
           track: '',
         });
-        let highScore = 0;
-        let gameWinners = [];
-        players.forEach((player) => {
-          if (player.score >= highScore) {
-            gameWinners.push(player.name);
-            highScore = player.score;
-          }
-        });
-
-        setWinners(gameWinners);
         setRoomState('endOfGame');
       });
 
       socket.on('disconnect', () => {
-        // alert('You have been disconnected');
-        // router.push('/');
+        alert('You have been disconnected');
+        router.push('/');
         console.log('you have been disconncted');
       });
     }
-  }, [socket, players, currentGameState, chatLog, timerKey]);
+  }, [socket]);
 
   const renderTime = ({ remainingTime }) => {
     if (currentGameState.round <= 0) {
@@ -207,6 +209,22 @@ export default function Lobby() {
         );
       }
     }
+  };
+
+  const Winners = () => {
+    let highScore = 0;
+    let winners = [];
+    players.forEach((player) => {
+      if (player.score >= highScore) {
+        winners.push(player.name);
+        highScore = player.score;
+      }
+    });
+    return <h1>Winner(s): {winners.join(', ')}</h1>;
+  };
+
+  const addNewMsgToChat = (msg) => {
+    setChatLog(...chatLog, msg);
   };
 
   const copyInviteLink = () => {
@@ -270,18 +288,10 @@ export default function Lobby() {
   };
 
   const addToChatLog = (text) => {
-    var guess = {
-      name: name,
-      isMyself: true,
-      time: moment().format('LT'),
-      text: text,
-    };
-    setChatLog([...chatLog, guess]);
-
     socket.emit('chat', {
       room: room,
       name: name,
-      isMyself: false,
+      socketid: socket.id,
       time: moment().format('LT'),
       text: text,
     });
@@ -300,15 +310,8 @@ export default function Lobby() {
           currentGameState.track.name.toLowerCase()
         ) {
           setCorrectBanner('Correct!');
-          let correctMsg = {
-            name: 'SpotTheTrack',
-            isMyself: false,
-            time: moment().format('LT'),
-            text: 'Good Job! You guessed the right song!',
-          };
           socket.emit('correctGuess', room);
           setAnswered(true);
-          setChatLog([...chatLog, correctMsg]);
         } else {
           setCorrectBanner('False! Try Again!');
           addToChatLog(guess);
@@ -597,7 +600,7 @@ export default function Lobby() {
                   {chatLog.map((guess) => (
                     <ChatBubble
                       key={Math.random()}
-                      isMyself={guess.isMyself}
+                      isMyself={guess.socketid == socket.id}
                       name={guess.name}
                       time={guess.time}
                       text={guess.text}
@@ -674,7 +677,8 @@ export default function Lobby() {
               </div>
             </Col>
             <Col lg='6' style={{ color: 'White' }}>
-              <h1>Winner(s): {winners.join(', ')}</h1>
+              {/* <h1>Winner(s): {getWinners.join(', ')}</h1> */}
+              <Winners />
               <div style={{ margin: '2rem 0' }}>
                 <h4>Songs used this Game:</h4>
                 <ListGroup>

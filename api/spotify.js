@@ -12,7 +12,7 @@ var spotify = new Spotify({
 });
 
 function getRandomInt(max) {
-  return Math.floor(Math.random() * Math.floor(max));
+  return Math.floor(Math.random() * max);
 }
 
 // @route   GET api/spotify
@@ -129,7 +129,10 @@ router.get('/initializeGameState', async (req, res) => {
           let randomArtists = chooseRandom(filteredItems);
           let randomTrack = chooseRandom(randomArtists);
           // console.log(randomTrack.album.images[0].url);
-          let name = randomTrack.name.toString().split(/(\(.*|\s-\s.*)/)[0].trim();
+          let name = randomTrack.name
+            .toString()
+            .split(/(\(.*|\s-\s.*)/)[0]
+            .trim();
           if (tracks.find((track) => track.name === name)) {
             continue;
           } else {
@@ -138,13 +141,19 @@ router.get('/initializeGameState', async (req, res) => {
               artistsInSong.push(a.name);
             }
             if (randomTrack.preview_url !== null) {
-              let hint1Index = getRandomInt(randomTrack.name.length);
-              while (name[hint1Index] == ' ') {
-                hint1Index = getRandomInt(randomTrack.name.length);
+              let hint1Index = getRandomInt(Math.floor(name.length / 2));
+              while (name[hint1Index] === ' ' || name[hint1Index] === '-') {
+                hint1Index = getRandomInt(Math.floor(name.length / 2));
               }
-              let hint2Index = getRandomInt(randomTrack.name.length);
-              while (hint1Index == hint2Index || name[hint2Index] == ' ') {
-                hint2Index = getRandomInt(randomTrack.name.length);
+
+              let hint2Index =
+                getRandomInt(Math.floor(name.length) / 2) +
+                Math.floor(name.length / 2);
+
+              while (name[hint2Index] === ' ' || name[hint1Index] === '-') {
+                hint2Index =
+                  getRandomInt(Math.floor(name.length / 2)) +
+                  Math.floor(name.length / 2);
               }
 
               let noHintStr = [];

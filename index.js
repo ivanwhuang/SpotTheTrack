@@ -44,6 +44,8 @@ io.on('connection', (socket) => {
       host: true,
       name,
       score: 0,
+      // this answered attribute can be used in the future to check if next round can start earlier
+      // upon everyone answering before the end of the current round
       answered: false,
     };
 
@@ -61,6 +63,7 @@ io.on('connection', (socket) => {
         numRounds: 5,
         artists: [],
       },
+      roundChat: [],
       correctRoundGuesses: 0,
     };
 
@@ -98,7 +101,7 @@ io.on('connection', (socket) => {
 
   socket.on('updateSettings', ({ room, settings }) => {
     rooms[room].settings = settings;
-    io.in(room).emit('roomInfo', rooms[room]);
+    io.in(room).emit('updateSettings', settings);
   });
 
   socket.on('prepareGame', async ({ room, settings }) => {
@@ -142,15 +145,19 @@ io.on('connection', (socket) => {
 
         // send countdown to clients in room
         io.in(room).emit('initialCountdown', {
+          initialTimerKey: -1,
           serverTime: Date.now() + 5000,
           trackList: data.tracks,
         });
 
         // wait 5 seconds before actually starting the game
         setTimeout(() => {
+          rooms[room].roundChat = [];
           io.in(room).emit('newRound', {
             track: data.tracks[x++],
+            round: x,
             serverTime: Date.now() + settings.timer * 1000,
+            roundChat: rooms[room].roundChat,
           });
 
           let interval = setInterval(() => {
@@ -162,9 +169,12 @@ io.on('connection', (socket) => {
                 io.in(room).emit('endOfGame');
               } else {
                 rooms[room].correctRoundGuesses = 0;
+                rooms[room].roundChat = [];
                 io.in(room).emit('newRound', {
                   track: data.tracks[x++],
+                  round: x,
                   serverTime: Date.now() + settings.timer * 1000,
+                  roundChat: rooms[room].roundChat,
                 });
               }
             }
@@ -194,12 +204,13 @@ io.on('connection', (socket) => {
 
     console.log(rooms[room].players);
 
-    io.in(room).emit('roomInfo', rooms[room]);
+    io.in(room).emit('playerInfo', rooms[room].players);
   });
 
-  socket.on('chat', ({ room, name, isMyself, time, text }) => {
-    var newMsg = { name, isMyself, time, text };
-    socket.to(room).emit('chat', newMsg);
+  socket.on('chat', ({ room, name, socketid, time, text }) => {
+    var newMsg = { name, socketid, time, text };
+    rooms[room].roundChat.push(newMsg);
+    io.in(room).emit('chat', rooms[room].roundChat);
   });
 
   socket.on('disconnect', () => {
