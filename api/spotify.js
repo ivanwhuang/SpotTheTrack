@@ -129,7 +129,7 @@ router.get('/initializeGameState', async (req, res) => {
           let randomArtists = chooseRandom(filteredItems);
           let randomTrack = chooseRandom(randomArtists);
           // console.log(randomTrack.album.images[0].url);
-          let name = randomTrack.name.toString().split('(')[0].trim();
+          let name = randomTrack.name.toString().split(/(\(.*|\s-\s.*)/)[0].trim();
           if (tracks.find((track) => track.name === name)) {
             continue;
           } else {
