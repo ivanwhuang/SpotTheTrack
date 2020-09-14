@@ -72,7 +72,7 @@ export default function Lobby() {
   // state to update track
   const [currentGameState, setCurrentGameState] = useState({
     round: 0,
-    trackIndex: -1,
+    track: '',
   });
   const [trackList, setTrackList] = useState([]);
   const [hint, setHint] = useState([]);
@@ -80,6 +80,7 @@ export default function Lobby() {
 
   const [correctBanner, setCorrectBanner] = useState('');
   const [guess, setGuess] = useState('');
+  const [answered, setAnswered] = useState(false);
   const [chatLog, setChatLog] = useState([]);
 
   const [countDown, setCountDown] = useState(null);
@@ -123,17 +124,23 @@ export default function Lobby() {
       });
 
       socket.on('numTracksError', (artists) => {
-        setToastInfo({ header: 'Error!', text: `Not enough tracks for ${artists}` });
+        setToastInfo({
+          header: 'Error!',
+          text: `Not enough tracks for ${artists}`,
+        });
         setShowToast(true);
-        console.log('not enough tracks error!!');
       });
 
-      socket.on('newRound', ({ trackIndex, serverTime }) => {
+      socket.on('newRound', ({ track, serverTime }) => {
+        setHint(track.noHintStr);
+        setCorrectBanner('');
         let newGameState = {
           round: currentGameState.round + 1,
-          trackIndex: trackIndex,
+          track: track,
         };
+
         setCurrentGameState(newGameState);
+        setAnswered(false);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
         setTimerKey(timerKey + 1);
       });
@@ -145,7 +152,7 @@ export default function Lobby() {
       socket.on('endOfGame', () => {
         setCurrentGameState({
           round: 0,
-          trackIndex: -1,
+          track: '',
         });
         let highScore = 0;
         let gameWinners = [];
@@ -166,7 +173,7 @@ export default function Lobby() {
         console.log('you have been disconncted');
       });
     }
-  }, [socket, players, currentGameState, trackList, chatLog, timerKey]);
+  }, [socket, players, currentGameState, chatLog, timerKey]);
 
   const renderTime = ({ remainingTime }) => {
     if (currentGameState.round <= 0) {
@@ -183,12 +190,11 @@ export default function Lobby() {
           <div style={{ fontSize: '24px', color: 'white' }}>Time's up!</div>
         );
       } else {
-        if (remainingTime <= Math.floor(settings.timer / 3)) {
-          setHint(trackList[currentGameState.trackIndex].hintStr2);
-        } else if (remainingTime <= Math.floor(settings.timer / 3) * 2) {
-          setHint(trackList[currentGameState.trackIndex].hintStr1);
-        } else {
-          setHint(trackList[currentGameState.trackIndex].noHintStr);
+        if (remainingTime == Math.floor(settings.timer / 3)) {
+          setHint(currentGameState.track.hintStr2);
+        }
+        if (remainingTime == Math.floor(settings.timer / 3) * 2) {
+          setHint(currentGameState.track.hintStr1);
         }
         return (
           <div
@@ -287,28 +293,31 @@ export default function Lobby() {
 
   const handleGuessSubmit = (e) => {
     e.preventDefault();
-    if (currentGameState.trackIndex >= 0) {
-      if (
-        guess.trim().toLowerCase() ===
-        trackList[currentGameState.trackIndex].name.toLowerCase()
-      ) {
-        setCorrectBanner('Correct!');
-        let correctMsg = {
-          name: 'SpotTheTrack',
-          isMyself: false,
-          time: moment().format('LT'),
-          text: 'Good Job! You guessed the right song!',
-        };
-        socket.emit('correctGuess', room);
-        setChatLog([...chatLog, correctMsg]);
+    if (guess.length > 0) {
+      if (!answered && currentGameState.round > 0) {
+        if (
+          guess.trim().toLowerCase() ===
+          currentGameState.track.name.toLowerCase()
+        ) {
+          setCorrectBanner('Correct!');
+          let correctMsg = {
+            name: 'SpotTheTrack',
+            isMyself: false,
+            time: moment().format('LT'),
+            text: 'Good Job! You guessed the right song!',
+          };
+          socket.emit('correctGuess', room);
+          setAnswered(true);
+          setChatLog([...chatLog, correctMsg]);
+        } else {
+          setCorrectBanner('False! Try Again!');
+          addToChatLog(guess);
+        }
       } else {
-        setCorrectBanner('False! Try Again!');
         addToChatLog(guess);
       }
-    } else {
-      addToChatLog(guess);
+      setGuess('');
     }
-    setGuess('');
   };
 
   if (roomState === 'lobby') {
@@ -355,7 +364,7 @@ export default function Lobby() {
                       <Card.Body>
                         <div>
                           <i
-                            class='fa fa-user fa-3x'
+                            className='fa fa-user fa-3x'
                             aria-hidden='true'
                             style={{ color: '#505050' }}
                           ></i>
@@ -519,12 +528,22 @@ export default function Lobby() {
                     ? `Round ${currentGameState.round}`
                     : 'Game Will Begin Shortly'}
                 </h1>
+                <h4
+                  style={{
+                    textAlign: 'center',
+                    color: 'white',
+                  }}
+                >
+                  {correctBanner}
+                </h4>
                 <div>
                   <Blur
                     className='test-image'
-                    img={currentGameState.trackIndex >= 0
-                      ? trackList[currentGameState.trackIndex].artwork
-                      : ''} 
+                    img={
+                      currentGameState.round > 0
+                        ? currentGameState.track.artwork
+                        : ''
+                    }
                     blurRadius={8}
                     style={{
                       width: 200,
@@ -538,7 +557,7 @@ export default function Lobby() {
                   </Blur>
                   <div style={{ color: 'white', margin: '1.5rem 0' }}>
                     <h3>
-                      {currentGameState.trackIndex >= 0 &&
+                      {currentGameState.round > 0 &&
                         hint.map((c) =>
                           c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
                         )}
@@ -546,8 +565,8 @@ export default function Lobby() {
                   </div>
                   <AudioPlayer
                     src={
-                      currentGameState.trackIndex >= 0
-                        ? trackList[currentGameState.trackIndex].preview
+                      currentGameState.round > 0
+                        ? currentGameState.track.preview
                         : null
                     }
                     autoPlayAfterSrcChange

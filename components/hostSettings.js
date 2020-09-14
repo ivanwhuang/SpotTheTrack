@@ -225,13 +225,12 @@ export default function HostSetting({ updateSettings, settings }) {
                         <a></a>
                         {artist['name']}
                       </Card.Title>
-                      <Card.Text>
-                        <b>Genres:</b>
-                        <p style={{ marginBottom: '0' }}>
-                          {artist['genres'].length > 0
-                            ? artist['genres'].join(', ')
-                            : 'Unknown'}
-                        </p>
+                      <Card.Text style={{ marginBottom: '0' }}>
+                        <b>Genres: </b>
+
+                        {artist['genres'].length > 0
+                          ? artist['genres'].join(', ')
+                          : 'Unknown'}
                       </Card.Text>
                     </Card.Body>
                     <Card.Footer>

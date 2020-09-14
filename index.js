@@ -149,7 +149,7 @@ io.on('connection', (socket) => {
         // wait 5 seconds before actually starting the game
         setTimeout(() => {
           io.in(room).emit('newRound', {
-            trackIndex: x++,
+            track: data.tracks[x++],
             serverTime: Date.now() + settings.timer * 1000,
           });
 
@@ -163,7 +163,7 @@ io.on('connection', (socket) => {
               } else {
                 rooms[room].correctRoundGuesses = 0;
                 io.in(room).emit('newRound', {
-                  trackIndex: x++,
+                  track: data.tracks[x++],
                   serverTime: Date.now() + settings.timer * 1000,
                 });
               }
