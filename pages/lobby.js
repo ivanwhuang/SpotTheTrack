@@ -122,7 +122,9 @@ export default function Lobby() {
         setTimerKey(timerKey + 1);
       });
 
-      socket.on('numTracksError', () => {
+      socket.on('numTracksError', (artists) => {
+        setToastInfo({ header: 'Error!', text: `Not enough tracks for ${artists}` });
+        setShowToast(true);
         console.log('not enough tracks error!!');
       });
 
@@ -517,19 +519,13 @@ export default function Lobby() {
                     ? `Round ${currentGameState.round}`
                     : 'Game Will Begin Shortly'}
                 </h1>
-                <h4
-                  style={{
-                    textAlign: 'center',
-                    color: 'white',
-                  }}
-                >
-                  {correctBanner}
-                </h4>
                 <div>
                   <Blur
                     className='test-image'
-                    img='https://i.scdn.co/image/107819f5dc557d5d0a4b216781c6ec1b2f3c5ab2'
-                    blurRadius={13}
+                    img={currentGameState.trackIndex >= 0
+                      ? trackList[currentGameState.trackIndex].artwork
+                      : ''} 
+                    blurRadius={8}
                     style={{
                       width: 200,
                       height: 200,

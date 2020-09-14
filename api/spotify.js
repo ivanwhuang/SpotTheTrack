@@ -117,7 +117,7 @@ router.get('/initializeGameState', async (req, res) => {
       );
       let ctr = 0;
       filteredItems.forEach((item) => (ctr += item.length));
-      console.log(filteredItems[0][0].album.images[0]);
+      // console.log(filteredItems, ctr);
       if (ctr < limit) {
         res.json(
           JSON.stringify({
@@ -128,6 +128,7 @@ router.get('/initializeGameState', async (req, res) => {
         while (tracks.length < limit) {
           let randomArtists = chooseRandom(filteredItems);
           let randomTrack = chooseRandom(randomArtists);
+          // console.log(randomTrack.album.images[0].url);
           let name = randomTrack.name.toString().split('(')[0].trim();
           if (tracks.find((track) => track.name === name)) {
             continue;
@@ -175,6 +176,7 @@ router.get('/initializeGameState', async (req, res) => {
 
               let track = {
                 name: name,
+                artwork: randomTrack.album.images[0].url,
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
                 noHintStr: noHintStr,

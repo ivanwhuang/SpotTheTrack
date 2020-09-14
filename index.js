@@ -125,7 +125,7 @@ io.on('connection', (socket) => {
       const data = JSON.parse(response.data);
 
       if ('error' in data) {
-        socket.emit('numTracksError');
+        socket.emit('numTracksError', settings.artists);
       } else {
         let x = 0;
         rooms[room].correctRoundGuesses = 0;
