@@ -503,53 +503,67 @@ export default function Lobby() {
               </div>
             </Col>
             <Col style={{ textAlign: 'center' }}>
-              <h1 style={{ color: 'white' }}>
-                {currentGameState.round > 0
-                  ? `Round ${currentGameState.round}`
-                  : 'Game Will Begin Shortly'}
-              </h1>
-              <h4
+              <div
                 style={{
-                  textAlign: 'center',
-                  color: 'white',
+                  padding: '1rem',
+                  background: '#6c757d',
+                  borderRadius: '20px',
+                  marginTop: '4rem',
+                  paddingBottom: '2rem',
                 }}
               >
-                {correctBanner}
-              </h4>
-              <div style={{ color: 'white' }}>
-                <h1>
-                  {currentGameState.trackIndex >= 0 &&
-                    hint.map((c) =>
-                      c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
-                    )}
+                <h1 style={{ color: 'white' }}>
+                  {currentGameState.round > 0
+                    ? `Round ${currentGameState.round}`
+                    : 'Game Will Begin Shortly'}
                 </h1>
-              </div>
-              <div>
-                <Blur 
-                  className='test-image'
-                  img='https://i.scdn.co/image/107819f5dc557d5d0a4b216781c6ec1b2f3c5ab2' 
-                  blurRadius={13}
+                <h4
                   style={{
-                    width: 300,
-                    height: 300,
-                    marginLeft: 'auto',
-                    marginRight: 'auto'
-                  }}>
-                  {}
-                </Blur>
-                <AudioPlayer
-                  src={
-                    currentGameState.trackIndex >= 0
-                      ? trackList[currentGameState.trackIndex].preview
-                      : null
-                  }
-                  autoPlayAfterSrcChange
-                  volume={0.2}
-                  style={{
-                    marginLeft: 'auto',
-                    marginRight: 'auto'
+                    textAlign: 'center',
+                    color: 'white',
                   }}
-                />
+                >
+                  {correctBanner}
+                </h4>
+                <div>
+                  <Blur
+                    className='test-image'
+                    img='https://i.scdn.co/image/107819f5dc557d5d0a4b216781c6ec1b2f3c5ab2'
+                    blurRadius={13}
+                    style={{
+                      width: 200,
+                      height: 200,
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      borderRadius: '20px',
+                    }}
+                  >
+                    {}
+                  </Blur>
+                  <div style={{ color: 'white', margin: '1.5rem 0' }}>
+                    <h3>
+                      {currentGameState.trackIndex >= 0 &&
+                        hint.map((c) =>
+                          c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
+                        )}
+                    </h3>
+                  </div>
+                  <AudioPlayer
+                    src={
+                      currentGameState.trackIndex >= 0
+                        ? trackList[currentGameState.trackIndex].preview
+                        : null
+                    }
+                    autoPlayAfterSrcChange
+                    volume={0.2}
+                    style={{
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      width: '80%',
+                      borderRadius: '20px',
+                    }}
+                  />
+                </div>
               </div>
             </Col>
             <Col lg='4'>
