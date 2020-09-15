@@ -149,8 +149,8 @@ export default function Lobby() {
 
       socket.on('numTracksError', (artists) => {
         setToastInfo({
-          header: 'Error!',
-          text: `Not enough tracks for ${artists}`,
+          header: 'Whoops!',
+          text: `We could not find enough tracks for ${artists}`,
         });
         setShowToast(true);
       });
@@ -164,6 +164,7 @@ export default function Lobby() {
         };
 
         setCurrentGameState(newGameState);
+        setCorrectBanner('Take a guess!');
         setAnswered(false);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
         setTimerKey(round);
@@ -771,7 +772,7 @@ export default function Lobby() {
                           textDecoration: 'none',
                           padding: '0',
                         }}
-                        href={track.uri}
+                        href={track.url}
                         target='_blank'
                       >
                         <img

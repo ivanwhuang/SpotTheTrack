@@ -63,30 +63,34 @@ export default function Home() {
             <Col lg={9}>
               <h1 className='intro-text'>Can you SpotTheTrack?</h1>
             </Col>
-            <Col lg={3} style={{}}>
-              <Button
-                className='landing-button'
-                size='lg'
-                variant='info'
-                type='submit'
-                onClick={handleHostSubmit}
-              >
-                Host A Game
-              </Button>
-              <Button
-                className='landing-button'
-                size='lg'
-                variant='secondary'
-                type='submit'
-                onClick={handleJoinSubmit}
-              >
-                Find A Game
-              </Button>
-              <Link href='/soloGame'>
-                <Button className='landing-button' size='lg' variant='success'>
-                  Play By Myself
+            <Col
+              lg={3}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <div>
+                <Button
+                  className='landing-button'
+                  size='lg'
+                  variant='info'
+                  type='submit'
+                  onClick={handleHostSubmit}
+                >
+                  Host A Game
                 </Button>
-              </Link>
+                <Button
+                  className='landing-button'
+                  size='lg'
+                  variant='secondary'
+                  type='submit'
+                  onClick={handleJoinSubmit}
+                >
+                  Find A Game
+                </Button>
+              </div>
             </Col>
           </Row>
         </Container>

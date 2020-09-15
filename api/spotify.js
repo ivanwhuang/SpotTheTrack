@@ -143,7 +143,11 @@ router.get('/initializeGameState', async (req, res) => {
             }
             if (randomTrack.preview_url !== null) {
               let hint1Index = getRandomInt(Math.floor(name.length / 2));
-              while (name[hint1Index] === ' ' || name[hint1Index] === '-') {
+              while (
+                name[hint1Index] === ' ' ||
+                name[hint1Index] === '-' ||
+                name[hint1Index] === '&'
+              ) {
                 hint1Index = getRandomInt(Math.floor(name.length / 2));
               }
 
@@ -151,7 +155,11 @@ router.get('/initializeGameState', async (req, res) => {
                 getRandomInt(Math.floor(name.length) / 2) +
                 Math.floor(name.length / 2);
 
-              while (name[hint2Index] === ' ' || name[hint1Index] === '-') {
+              while (
+                name[hint2Index] === ' ' ||
+                name[hint1Index] === '-' ||
+                name[hint1Index] === '&'
+              ) {
                 hint2Index =
                   getRandomInt(Math.floor(name.length / 2)) +
                   Math.floor(name.length / 2);
@@ -189,7 +197,7 @@ router.get('/initializeGameState', async (req, res) => {
                 artwork: randomTrack.album.images[0].url,
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
-                uri: randomTrack.uri,
+                url: randomTrack.external_urls.spotify,
                 noHintStr: noHintStr,
                 hintStr1: hintStr1,
                 hintStr2: hintStr2,
