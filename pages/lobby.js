@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -53,6 +53,16 @@ export default function Lobby() {
 
   const socket = useSocket('http://localhost:5000');
 
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottomOfChat = () => {
+    messagesEndRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'start',
+    });
+  };
+
   const [socketConnected, setSocketConnected] = useState(false);
 
   const [showModal, setShowModal] = useState(true);
@@ -78,7 +88,7 @@ export default function Lobby() {
   const [trackList, setTrackList] = useState([]);
   const [hint, setHint] = useState([]);
 
-  const [correctBanner, setCorrectBanner] = useState('');
+  const [correctBanner, setCorrectBanner] = useState('Take a guess!');
   const [guess, setGuess] = useState('');
   const [answered, setAnswered] = useState(false);
   const [chatLog, setChatLog] = useState([]);
@@ -126,11 +136,14 @@ export default function Lobby() {
 
       socket.on(
         'initialCountdown',
-        ({ initialTimerKey, serverTime, trackList }) => {
+        ({ initialTimerKey, serverTime, trackList, playerInfo, roundChat }) => {
           setTrackList(trackList);
           setRoomState('game');
           setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
           setTimerKey(initialTimerKey);
+          setCorrectBanner('Take a guess!');
+          setPlayers(playerInfo);
+          setChatLog(roundChat);
         }
       );
 
@@ -145,7 +158,6 @@ export default function Lobby() {
       socket.on('newRound', ({ round, track, serverTime, roundChat }) => {
         setHint(track.noHintStr);
         setChatLog(roundChat);
-        setCorrectBanner('');
         let newGameState = {
           round: round,
           track: track,
@@ -159,6 +171,7 @@ export default function Lobby() {
 
       socket.on('chat', (roundChat) => {
         setChatLog(roundChat);
+        scrollToBottomOfChat();
       });
 
       socket.on('endOfGame', () => {
@@ -220,7 +233,7 @@ export default function Lobby() {
         highScore = player.score;
       }
     });
-    return <h1>Winner(s): {winners.join(', ')}</h1>;
+    return <h1 style={{ color: 'White' }}>Winner(s): {winners.join(', ')}</h1>;
   };
 
   const addNewMsgToChat = (msg) => {
@@ -313,7 +326,7 @@ export default function Lobby() {
           socket.emit('correctGuess', room);
           setAnswered(true);
         } else {
-          setCorrectBanner('False! Try Again!');
+          setCorrectBanner('Try Again!');
           addToChatLog(guess);
         }
       } else {
@@ -358,13 +371,14 @@ export default function Lobby() {
                       variant='dark'
                       key={player.socket_id}
                       style={{
-                        width: '8rem',
+                        width: '9rem',
                         margin: '1rem',
                         textAlign: 'center',
                         background: 'lightgray',
+                        border: 'thick solid gray',
                       }}
                     >
-                      <Card.Body>
+                      <Card.Body style={{ padding: '1rem 0.75rem' }}>
                         <div>
                           <i
                             className='fa fa-user fa-3x'
@@ -455,7 +469,11 @@ export default function Lobby() {
       <div className='game-background'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
-            <Col lg='4' style={{ textAlign: 'center' }}>
+            <Col
+              md={6}
+              lg={4}
+              style={{ textAlign: 'center', minHeight: '80vh' }}
+            >
               <div style={{ margin: '1rem 0' }}>
                 {countDown == null ? (
                   'Game has not started..'
@@ -491,13 +509,16 @@ export default function Lobby() {
                     variant='dark'
                     key={player.socket_id}
                     style={{
-                      width: '8rem',
+                      width: '9rem',
                       margin: '0.5rem',
                       textAlign: 'center',
                       background: 'lightgray',
+                      border: player.answered
+                        ? 'thick solid #28B463'
+                        : 'thick solid gray',
                     }}
                   >
-                    <Card.Body>
+                    <Card.Body style={{ padding: '1rem 0.75rem' }}>
                       <div>
                         <i
                           class='fa fa-user fa-2x'
@@ -516,14 +537,22 @@ export default function Lobby() {
                 ))}
               </div>
             </Col>
-            <Col style={{ textAlign: 'center' }}>
+            <Col
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+              }}
+              md={6}
+              lg={4}
+            >
               <div
                 style={{
-                  padding: '1rem',
+                  padding: '2rem 1rem',
                   background: '#6c757d',
                   borderRadius: '20px',
-                  marginTop: '4rem',
-                  paddingBottom: '2rem',
+                  width: '100%',
                 }}
               >
                 <h1 style={{ color: 'white' }}>
@@ -537,7 +566,29 @@ export default function Lobby() {
                     color: 'white',
                   }}
                 >
-                  {correctBanner}
+                  {correctBanner} &nbsp;
+                  {correctBanner === 'Correct!' ? (
+                    <img
+                      style={{
+                        height: '1.5rem',
+                        marginTop: '0',
+                        marginBottom: '0.3rem',
+                      }}
+                      src='/images/check.png'
+                      alt='correct'
+                    />
+                  ) : correctBanner === 'Try Again!' ? (
+                    <img
+                      style={{
+                        height: '1.5rem',
+                        marginTop: '0',
+                        marginBottom: '0.3rem',
+                        opacity: '0.8',
+                      }}
+                      src='/images/remove.png'
+                      alt='wrong'
+                    />
+                  ) : null}
                 </h4>
                 <div>
                   <Blur
@@ -584,17 +635,18 @@ export default function Lobby() {
                 </div>
               </div>
             </Col>
-            <Col lg='4'>
+            <Col
+              md={12}
+              lg={4}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <div className='msger'>
                 <header className='msger-header'>
-                  <div className='msger-header-title'>
-                    <i className='fa fa-comment'></i> Game Chat
-                  </div>
-                  <div className='msger-header-options'>
-                    <span>
-                      <i className='fa fa-cog'></i>
-                    </span>
-                  </div>
+                  <div className='msger-header-title'>Game Chat</div>
                 </header>
                 <main className='msger-chat'>
                   {chatLog.map((guess) => (
@@ -606,6 +658,7 @@ export default function Lobby() {
                       text={guess.text}
                     />
                   ))}
+                  <div ref={messagesEndRef}></div>
                 </main>
                 <form className='msger-inputarea' onSubmit={handleGuessSubmit}>
                   <input
@@ -634,7 +687,7 @@ export default function Lobby() {
       <div className='endOfGame-content'>
         <Container fluid style={{ padding: '0 2rem' }}>
           <Row>
-            <Col style={{ minHeight: '80vh' }}>
+            <Col style={{ minHeight: '80vh', textAlign: 'center' }}>
               <h1 style={{ color: 'white', marginBottom: '2rem' }}>
                 Final Scores
               </h1>
@@ -652,12 +705,13 @@ export default function Lobby() {
                     key={player.socket_id}
                     style={{
                       width: '9rem',
-                      margin: '1rem',
+                      margin: '0.5rem',
                       textAlign: 'center',
                       background: 'lightgray',
+                      border: 'thick solid gray',
                     }}
                   >
-                    <Card.Body>
+                    <Card.Body style={{ padding: '1rem 0.75rem' }}>
                       <div>
                         <i
                           class='fa fa-user fa-3x'
@@ -675,27 +729,68 @@ export default function Lobby() {
                   </Card>
                 ))}
               </div>
+              <Button
+                variant='info'
+                style={{ marginTop: '1rem', width: '50%' }}
+                onClick={() => setRoomState('lobby')}
+              >
+                Return to Lobby
+              </Button>
             </Col>
-            <Col lg='6' style={{ color: 'White' }}>
+            <Col lg='7' style={{ textAlign: 'center' }}>
               {/* <h1>Winner(s): {getWinners.join(', ')}</h1> */}
               <Winners />
-              <div style={{ margin: '2rem 0' }}>
-                <h4>Songs used this Game:</h4>
-                <ListGroup>
+              <div
+                style={{
+                  margin: '2rem 0',
+                }}
+              >
+                <h4 style={{ color: 'White' }}>Songs used this Game</h4>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                  }}
+                >
                   {trackList.map((track) => (
-                    <ListGroup.Item
-                      variant='light'
+                    <Card
                       key={track.name}
                       style={{
-                        border: '1px solid rgba(0, 0, 0, 0.3)',
-                        color: '#212529',
+                        width: '10rem',
+                        margin: '0.5rem',
+                        textAlign: 'center',
+                        background: '#fdfdfe',
                       }}
+                      className='song-card'
                     >
-                      <b>{track.name}</b> -{' '}
-                      {track.artists.map((artist) => `${artist.name}, `)}
-                    </ListGroup.Item>
+                      <a
+                        style={{
+                          color: '#212529',
+                          textDecoration: 'none',
+                          padding: '0',
+                        }}
+                        href={track.uri}
+                        target='_blank'
+                      >
+                        <img
+                          class='card-img-top'
+                          src={track.artwork}
+                          alt='song-img'
+                        />
+                        <Card.Body style={{ padding: '1rem 1rem 0rem 1rem' }}>
+                          <h6 class='card-title'>{track.name}</h6>
+                          <p style={{ fontSize: '12px' }}>
+                            {track.artists
+                              .map((artist) => artist.name)
+                              .join(', ')}
+                          </p>
+                        </Card.Body>
+                      </a>
+                    </Card>
                   ))}
-                </ListGroup>
+                </div>
               </div>
             </Col>
           </Row>

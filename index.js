@@ -132,6 +132,7 @@ io.on('connection', (socket) => {
       } else {
         let x = 0;
         rooms[room].correctRoundGuesses = 0;
+        rooms[room].roundChat = [];
         rooms[room].players = rooms[room].players.map((player) => {
           let ret = {
             socket_id: player.socket_id,
@@ -148,6 +149,8 @@ io.on('connection', (socket) => {
           initialTimerKey: -1,
           serverTime: Date.now() + 5000,
           trackList: data.tracks,
+          playerInfo: rooms[room].players,
+          roundChat: rooms[room].roundChat,
         });
 
         // wait 5 seconds before actually starting the game
@@ -169,7 +172,11 @@ io.on('connection', (socket) => {
                 io.in(room).emit('endOfGame');
               } else {
                 rooms[room].correctRoundGuesses = 0;
+                for (let i = 0; i < rooms[room].players.length; i++) {
+                  rooms[room].players[i].answered = false;
+                }
                 rooms[room].roundChat = [];
+                io.in(room).emit('playerInfo', rooms[room].players);
                 io.in(room).emit('newRound', {
                   track: data.tracks[x++],
                   round: x,
@@ -199,6 +206,7 @@ io.on('connection', (socket) => {
           125,
           rooms[room].correctRoundGuesses
         );
+        rooms[room].players[idx].answered = true;
       }
     }
 

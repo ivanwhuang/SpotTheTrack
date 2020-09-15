@@ -23,6 +23,8 @@ export default function HostSetting({ updateSettings, settings }) {
   const [artistResults, setArtistResults] = useState([]);
   const [showArtistModal, setShowArtistModal] = useState(false);
 
+  const [isMoving, setIsMoving] = useState(false);
+
   const [newSettings, setNewSettings] = useState(false);
 
   // update the settings state in lobby upon any change to any of the settings
@@ -179,10 +181,10 @@ export default function HostSetting({ updateSettings, settings }) {
                       </ListGroup.Item>
                     ))
                   ) : (
-                    <ListGroup.Item variant='light'>
-                      No artists have been chosen yet.
-                    </ListGroup.Item>
-                  )}
+                      <ListGroup.Item variant='light'>
+                        No artists have been chosen yet.
+                      </ListGroup.Item>
+                    )}
                 </ListGroup>
               </Col>
             </Form.Group>
@@ -248,10 +250,7 @@ export default function HostSetting({ updateSettings, settings }) {
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button
-              variant='secondary'
-              onClick={(event) => handleCloseArtistModal(event, artist['name'])}
-            >
+            <Button variant='secondary' onClick={handleCloseArtistModal}>
               Cancel
             </Button>
           </Modal.Footer>

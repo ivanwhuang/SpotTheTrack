@@ -116,9 +116,9 @@ router.get('/initializeGameState', async (req, res) => {
         item.filter((track) => track.preview_url !== null)
       );
       let allTracks = [];
-      filteredItems
-        .forEach((item) => item
-          .forEach((track) => allTracks.push(track)));
+      filteredItems.forEach((item) =>
+        item.forEach((track) => allTracks.push(track))
+      );
       let shuffledTracks = shuffle(allTracks);
 
       if (shuffledTracks.length < limit) {
@@ -189,6 +189,7 @@ router.get('/initializeGameState', async (req, res) => {
                 artwork: randomTrack.album.images[0].url,
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
+                uri: randomTrack.uri,
                 noHintStr: noHintStr,
                 hintStr1: hintStr1,
                 hintStr2: hintStr2,

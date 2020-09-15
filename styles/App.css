@@ -82,12 +82,13 @@
 }
 
 .artist-card {
-  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.4), 0 10px 23px 0 rgba(0, 0, 0, 0.19);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.9);
+  transition: 0.5s ease;
 }
 
 .artist-card:hover {
-  box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.6), 0 14px 28px 0 rgba(0, 0, 0, 0.19);
-  transition: box-shadow 0.3s ease-in-out;
+  transform: scale(1.05);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.6);
 }
 
 /* ----------------------- Solo Game Page -------------------------*/
@@ -104,7 +105,7 @@
   width: 100%;
   max-width: 867px;
   margin: 25px 10px;
-  height: 80vh;
+  height: 65vh;
   border: var(--border);
   border-radius: 5px;
   background: var(--msger-bg);
@@ -117,12 +118,13 @@
   padding: 10px;
   border-bottom: var(--border);
   background: #eee;
+  font-size: 20px;
   color: #666;
 }
 
 .msger-chat {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding: 20px;
 }
 .msger-chat::-webkit-scrollbar {
@@ -224,6 +226,17 @@
 .endOfGame-content {
   background: #4b545c;
   padding: 2rem 0;
+}
+
+.song-card {
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.9);
+  transition: 0.5s ease;
+  cursor: pointer;
+}
+
+.song-card:hover {
+  transform: scale(1.05);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.6);
 }
 
 /* ----------------------- Timer Component -------------------------*/
