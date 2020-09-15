@@ -5,6 +5,7 @@ const dotenv = require('dotenv').config();
 const Spotify = require('node-spotify-api');
 const queryString = require('query-string');
 const router = express.Router();
+const assert = require('assert');
 
 var spotify = new Spotify({
   id: process.env.SPOTIFY_CLIENT,
@@ -14,19 +15,6 @@ var spotify = new Spotify({
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
-
-// @route   GET api/spotify
-// @desc    Sample route for Jesse Lee
-// @access  Private
-router.get('/test', async (req, res) => {
-  try {
-    const result = await axios.get('http://numbersapi.com/5/math');
-    res.json(result.data);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
 
 // NOTE: DEPRECATED--USE api/spotify/initializeGameState
 // @route   GET api/spotify/gettrack
@@ -79,6 +67,18 @@ router.get('/gettrack', (req, res) => {
 //          to be played
 // @access  Public
 router.get('/initializeGameState', async (req, res) => {
+  // source: https://stackoverflow.com/a/6274381
+  const shuffle = (a) => {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1));
+      x = a[i];
+      a[i] = a[j];
+      a[j] = x;
+    }
+    return a;
+  };
+
   const chooseRandom = (arr) => {
     return arr[Math.floor(Math.random() * arr.length) % arr.length];
   };
@@ -115,10 +115,13 @@ router.get('/initializeGameState', async (req, res) => {
       let filteredItems = items.map((item) =>
         item.filter((track) => track.preview_url !== null)
       );
-      let ctr = 0;
-      filteredItems.forEach((item) => (ctr += item.length));
-      // console.log(filteredItems, ctr);
-      if (ctr < limit) {
+      let allTracks = [];
+      filteredItems
+        .forEach((item) => item
+          .forEach((track) => allTracks.push(track)));
+      let shuffledTracks = shuffle(allTracks);
+
+      if (shuffledTracks.length < limit) {
         res.json(
           JSON.stringify({
             error: 'Tracks received less than limit provided.',
@@ -126,9 +129,7 @@ router.get('/initializeGameState', async (req, res) => {
         );
       } else {
         while (tracks.length < limit) {
-          let randomArtists = chooseRandom(filteredItems);
-          let randomTrack = chooseRandom(randomArtists);
-          // console.log(randomTrack.album.images[0].url);
+          let randomTrack = chooseRandom(shuffledTracks);
           let name = randomTrack.name
             .toString()
             .split(/(\(.*|\s-\s.*)/)[0]
@@ -196,7 +197,7 @@ router.get('/initializeGameState', async (req, res) => {
             }
           }
         }
-        console.log(tracks);
+        // console.log(tracks);
         res.json(
           JSON.stringify({
             tracks: tracks,
