@@ -20,6 +20,9 @@ const server = app.listen(PORT, () =>
   console.log(`Server started on port ${PORT}`)
 );
 
+const backendBaseURL =
+  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+
 // global variable storing the rooms
 var rooms = {};
 
@@ -117,7 +120,7 @@ io.on('connection', (socket) => {
       );
       let limit = queryString.stringify({ limit: settings.numRounds });
       const response = await axios.get(
-        'https://spot-the-track.herokuapp.com/api/spotify/initializeGameState',
+        `${backendBaseURL}/api/spotify/initializeGameState`,
         {
           params: {
             artists: artists,

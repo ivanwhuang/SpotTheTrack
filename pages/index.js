@@ -15,6 +15,9 @@ import {
   Alert,
 } from 'react-bootstrap';
 
+const backendBaseURL =
+  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+
 export default function Home() {
   const router = useRouter();
 
@@ -44,7 +47,7 @@ export default function Home() {
     e.preventDefault();
     if (room) {
       const response = await axios.get(
-        'https://spot-the-track.herokuapp.com/api/lobby/isValidRoom/' + room
+        `${backendBaseURL}/api/lobby/isValidRoom/` + room
       );
       const isValidRoom = response.data;
       if (isValidRoom) {

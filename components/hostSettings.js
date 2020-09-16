@@ -14,6 +14,9 @@ import axios from 'axios';
 
 import RangeSlider from 'react-bootstrap-range-slider';
 
+const backendBaseURL =
+  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+
 export default function HostSetting({ updateSettings, settings }) {
   const [timer, setTimer] = useState(settings.timer);
   const [numRounds, setNumRounds] = useState(settings.numRounds);
@@ -58,8 +61,7 @@ export default function HostSetting({ updateSettings, settings }) {
     e.preventDefault();
     if (artistKeyword) {
       const response = await axios.get(
-        'https://spot-the-track.herokuapp.com/api/spotify/searchArtist/' +
-          artistKeyword
+        `${backendBaseURL}/api/spotify/searchArtist/` + artistKeyword
       );
       setArtistResults(response.data);
       setShowToolTip('off');

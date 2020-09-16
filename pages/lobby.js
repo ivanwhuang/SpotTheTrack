@@ -28,6 +28,12 @@ import {
   ListGroup,
 } from 'react-bootstrap';
 
+const frontEndBaseURL =
+  process.env.PRODUCTION_FRONT_END || 'http://localhost:3000';
+
+const backendBaseURL =
+  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
 
@@ -51,7 +57,7 @@ function useSocket(url) {
 export default function Lobby() {
   const router = useRouter();
 
-  const socket = useSocket('https://spot-the-track.herokuapp.com/');
+  const socket = useSocket(backendBaseURL);
 
   const messagesEndRef = useRef(null);
 
@@ -242,7 +248,7 @@ export default function Lobby() {
   };
 
   const copyInviteLink = () => {
-    copy(`https://spot-the-track.vercel.app/lobby?room=${room}`);
+    copy(`${frontEndBaseURL}/lobby?room=${room}`);
   };
 
   // used in HostSettings component
@@ -262,7 +268,7 @@ export default function Lobby() {
       if (room) {
         // Not host
         const response = await axios.get(
-          'https://spot-the-track.herokuapp.com/api/lobby/isValidRoom/' + room
+          `${backendBaseURL}/api/lobby/isValidRoom/` + room
         );
         const isValidRoom = response.data;
         if (isValidRoom) {
@@ -354,7 +360,7 @@ export default function Lobby() {
                   </Button>{' '}
                 </h5>
                 <p style={{ color: 'lightGray' }}>
-                  {`https://spot-the-track.vercel.app/lobby?room=${room}`}
+                  {`${frontEndBaseURL}/lobby?room=${room}`}
                 </p>
                 <div style={{ textAlign: 'center' }}>
                   <h1 style={{ color: 'white' }}>Players</h1>
