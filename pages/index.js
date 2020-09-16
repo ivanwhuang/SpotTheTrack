@@ -44,7 +44,7 @@ export default function Home() {
     e.preventDefault();
     if (room) {
       const response = await axios.get(
-        'http://localhost:5000/api/lobby/isValidRoom/' + room
+        'https://spot-the-track.herokuapp.com/api/lobby/isValidRoom/' + room
       );
       const isValidRoom = response.data;
       if (isValidRoom) {

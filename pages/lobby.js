@@ -51,7 +51,7 @@ function useSocket(url) {
 export default function Lobby() {
   const router = useRouter();
 
-  const socket = useSocket('http://localhost:5000');
+  const socket = useSocket('https://spot-the-track.herokuapp.com/');
 
   const messagesEndRef = useRef(null);
 
@@ -242,7 +242,7 @@ export default function Lobby() {
   };
 
   const copyInviteLink = () => {
-    copy(`http://localhost:3000/lobby?room=${room}`);
+    copy(`https://spot-the-track.herokuapp.com/lobby?room=${room}`);
   };
 
   // used in HostSettings component
@@ -262,7 +262,7 @@ export default function Lobby() {
       if (room) {
         // Not host
         const response = await axios.get(
-          'http://localhost:5000/api/lobby/isValidRoom/' + room
+          'https://spot-the-track.herokuapp.com/lobby/isValidRoom/' + room
         );
         const isValidRoom = response.data;
         if (isValidRoom) {
@@ -354,7 +354,7 @@ export default function Lobby() {
                   </Button>{' '}
                 </h5>
                 <p style={{ color: 'lightGray' }}>
-                  {`http://localhost:3000/lobby?room=${room}`}
+                  {`https://spot-the-track.herokuapp.com/lobby?room=${room}`}
                 </p>
                 <div style={{ textAlign: 'center' }}>
                   <h1 style={{ color: 'white' }}>Players</h1>

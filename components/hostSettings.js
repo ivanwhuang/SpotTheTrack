@@ -58,7 +58,8 @@ export default function HostSetting({ updateSettings, settings }) {
     e.preventDefault();
     if (artistKeyword) {
       const response = await axios.get(
-        'http://localhost:5000/api/spotify/searchArtist/' + artistKeyword
+        'https://spot-the-track.herokuapp.com/api/spotify/searchArtist/' +
+          artistKeyword
       );
       setArtistResults(response.data);
       setShowToolTip('off');
@@ -181,10 +182,10 @@ export default function HostSetting({ updateSettings, settings }) {
                       </ListGroup.Item>
                     ))
                   ) : (
-                      <ListGroup.Item variant='light'>
-                        No artists have been chosen yet.
-                      </ListGroup.Item>
-                    )}
+                    <ListGroup.Item variant='light'>
+                      No artists have been chosen yet.
+                    </ListGroup.Item>
+                  )}
                 </ListGroup>
               </Col>
             </Form.Group>

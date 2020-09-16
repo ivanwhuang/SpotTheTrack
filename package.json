@@ -5,7 +5,6 @@
   "scripts": {
     "client": "next dev",
     "build": "next build",
-    "export": "next export",
     "start": "next start",
     "server": "nodemon index",
     "dev": "concurrently \"npm run server\" \"npm run client\""
@@ -36,5 +35,8 @@
     "short-uuid": "^3.1.1",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0"
+  },
+  "engines": {
+    "node": "12.16.1"
   }
 }
