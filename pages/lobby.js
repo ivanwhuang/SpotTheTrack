@@ -29,10 +29,14 @@ import {
 } from 'react-bootstrap';
 
 const frontEndBaseURL =
-  process.env.PRODUCTION_FRONT_END || 'http://localhost:3000';
+  process.env.NEXT_PUBLIC_FRONT_END || 'http://localhost:3000';
+
+console.log(frontEndBaseURL);
 
 const backendBaseURL =
-  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+  process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
+
+console.log(backendBaseURL);
 
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
@@ -79,7 +83,7 @@ export default function Lobby() {
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
   const [settings, setSettings] = useState({
-    timer: 60,
+    timer: 30,
     numRounds: 5,
     artists: [],
   });
@@ -164,6 +168,8 @@ export default function Lobby() {
       socket.on('newRound', ({ round, track, serverTime, roundChat }) => {
         setHint(track.noHintStr);
         setChatLog(roundChat);
+        setGuess('');
+
         let newGameState = {
           round: round,
           track: track,
@@ -560,10 +566,13 @@ export default function Lobby() {
                   background: '#6c757d',
                   borderRadius: '20px',
                   width: '100%',
+                  height: '75vh',
                 }}
               >
                 <h1 style={{ color: 'white' }}>
-                  {currentGameState.round > 0
+                  {currentGameState.round == settings.numRounds
+                    ? 'Last Round'
+                    : currentGameState.round > 0
                     ? `Round ${currentGameState.round}`
                     : 'Game Will Begin Shortly'}
                 </h1>

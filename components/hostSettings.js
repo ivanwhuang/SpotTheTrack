@@ -15,7 +15,7 @@ import axios from 'axios';
 import RangeSlider from 'react-bootstrap-range-slider';
 
 const backendBaseURL =
-  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+  process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
 
 export default function HostSetting({ updateSettings, settings }) {
   const [timer, setTimer] = useState(settings.timer);
@@ -105,7 +105,7 @@ export default function HostSetting({ updateSettings, settings }) {
                 <RangeSlider
                   value={timer}
                   min={20}
-                  max={90}
+                  max={60}
                   step={10}
                   size='lg'
                   tooltipPlacement='top'
@@ -122,8 +122,8 @@ export default function HostSetting({ updateSettings, settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={numRounds}
-                  min={2}
-                  max={8}
+                  min={5}
+                  max={10}
                   step={1}
                   size='lg'
                   tooltipPlacement='top'

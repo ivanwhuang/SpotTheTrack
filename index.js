@@ -30,8 +30,8 @@ var rooms = {};
 var roomOfSocket = {};
 
 const io = socketio(server, {
-  pingInterval: 60000,
-  pingTimeout: 60000,
+  pingInterval: 300000,
+  pingTimeout: 300000,
 });
 
 io.on('connection', (socket) => {
@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
     rooms[newRoom] = {
       players: [host],
       settings: {
-        timer: 60,
+        timer: 30,
         numRounds: 5,
         artists: [],
       },

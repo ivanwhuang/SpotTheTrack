@@ -16,7 +16,7 @@ import {
 } from 'react-bootstrap';
 
 const backendBaseURL =
-  process.env.PRODUCTION_BACK_END || 'http://localhost:5000';
+  process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
 
 export default function Home() {
   const router = useRouter();
@@ -108,7 +108,9 @@ export default function Home() {
                 alt='rules1'
                 style={{ width: '90%' }}
               ></img>
-              <div style={{ marginTop: '1rem' }}>Each Round ....</div>
+              <div style={{ marginTop: '1rem' }}>
+                <h5>Each Round ...</h5>
+              </div>
             </Col>
             <Col className='rule-col'>
               <img
@@ -117,7 +119,7 @@ export default function Home() {
                 style={{ width: '90%' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                Try to guess the name of the song
+                <h5>Try to guess the name of the song</h5>
               </div>
             </Col>
           </Row>
@@ -129,7 +131,7 @@ export default function Home() {
                 style={{ width: '90%' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                Clues will be given out periodically.
+                <h5>Clues will be given out periodically.</h5>
               </div>
             </Col>
             <Col className='rule-col'>
@@ -139,20 +141,38 @@ export default function Home() {
                 style={{ width: '90%' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                Winner goes to player with the most points
+                <h5>Winner goes to player with the most points</h5>
               </div>
             </Col>
           </Row>
+          <div style={{ margin: '4rem 0' }}>
+            <h2 style={{ margin: '1rem' }}>
+              Why you may not see some of your favorite songs
+            </h2>
+            <h6>
+              For each song, our game attempts to retrieve a sample preview URL
+              from Spotify.
+            </h6>
+            <h6>
+              Unfortunately, some songs received from Spotify's API do not have
+              a preview url.
+            </h6>
+          </div>
           <div>
             In Game icons made by{' '}
             <a
               href='https://www.flaticon.com/authors/pixel-perfect'
               title='Pixel perfect'
+              className='footer-link'
             >
               Pixel perfect
             </a>{' '}
             from{' '}
-            <a href='https://www.flaticon.com/' title='Flaticon'>
+            <a
+              href='https://www.flaticon.com/'
+              title='Flaticon'
+              className='footer-link'
+            >
               {' '}
               www.flaticon.com
             </a>
