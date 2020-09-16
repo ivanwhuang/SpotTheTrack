@@ -117,7 +117,7 @@ io.on('connection', (socket) => {
       );
       let limit = queryString.stringify({ limit: settings.numRounds });
       const response = await axios.get(
-        'http://localhost:5000/api/spotify/initializeGameState',
+        'https://spot-the-track.herokuapp.com/api/spotify/initializeGameState',
         {
           params: {
             artists: artists,
