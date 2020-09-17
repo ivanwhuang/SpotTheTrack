@@ -11,11 +11,32 @@ import {
 } from 'react-bootstrap';
 
 import axios from 'axios';
+import Carousel from 'react-multi-carousel';
 
 import RangeSlider from 'react-bootstrap-range-slider';
 
 const backendBaseURL =
   process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
+
+const responsive = {
+  superLargeDesktop: {
+    // the naming can be any, depends on you.
+    breakpoint: { max: 4000, min: 3000 },
+    items: 3,
+  },
+  desktop: {
+    breakpoint: { max: 3000, min: 1200 },
+    items: 3,
+  },
+  tablet: {
+    breakpoint: { max: 1200, min: 464 },
+    items: 1,
+  },
+  mobile: {
+    breakpoint: { max: 464, min: 0 },
+    items: 1,
+  },
+};
 
 export default function HostSetting({ updateSettings, settings }) {
   const [timer, setTimer] = useState(settings.timer);
@@ -25,8 +46,6 @@ export default function HostSetting({ updateSettings, settings }) {
   const [artistKeyword, setArtistKeyword] = useState('');
   const [artistResults, setArtistResults] = useState([]);
   const [showArtistModal, setShowArtistModal] = useState(false);
-
-  const [isMoving, setIsMoving] = useState(false);
 
   const [newSettings, setNewSettings] = useState(false);
 
@@ -142,7 +161,7 @@ export default function HostSetting({ updateSettings, settings }) {
               <Col sm='9' lg='5'>
                 <Form.Control
                   type='text'
-                  placeholder='Khalid, Lauv ... '
+                  placeholder='Khalid, Dabin ... '
                   value={artistKeyword}
                   onChange={handleChangeArtistKeyword}
                 />
@@ -201,9 +220,59 @@ export default function HostSetting({ updateSettings, settings }) {
           <Modal.Header closeButton>
             <Modal.Title>Which Artist?</Modal.Title>
           </Modal.Header>
-          <Modal.Body className='artist-modal-background'>
+          <Modal.Body
+            className='artist-modal-background'
+            style={{ padding: '2rem 4rem' }}
+          >
             <Form.Group controlId='ArtistSearchModal'>
-              <div
+              <Carousel
+                draggable={true}
+                responsive={responsive}
+                ssr={true} // means to render carousel on server-side.
+              >
+                {artistResults.map((artist) => (
+                  <Card
+                    border='dark'
+                    key={artist['name']}
+                    style={{ width: '15rem', margin: 'auto' }}
+                    className='artist-card'
+                  >
+                    <Card.Img
+                      src={
+                        artist['images'].length > 0
+                          ? artist['images'][0]['url']
+                          : '/images/placeholder.png'
+                      }
+                      style={{ height: '15rem' }}
+                    />
+
+                    <Card.Body style={{ overflowY: 'scroll' }}>
+                      <Card.Title>
+                        <a></a>
+                        {artist['name']}
+                      </Card.Title>
+                      <Card.Text style={{ marginBottom: '0' }}>
+                        <b>Genres: </b>
+
+                        {artist['genres'].length > 0
+                          ? artist['genres'].join(', ')
+                          : 'Unknown'}
+                      </Card.Text>
+                    </Card.Body>
+                    <Card.Footer>
+                      <Button
+                        variant='info'
+                        block
+                        onClick={handleSubmitSelectArtist(artist['name'])}
+                      >
+                        Add to List
+                      </Button>
+                    </Card.Footer>
+                  </Card>
+                ))}
+              </Carousel>
+
+              {/* <div
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
@@ -251,7 +320,7 @@ export default function HostSetting({ updateSettings, settings }) {
                     </Card.Footer>
                   </Card>
                 ))}
-              </div>
+              </div> */}
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>

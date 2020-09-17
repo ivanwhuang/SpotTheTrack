@@ -591,7 +591,7 @@ export default function Lobby() {
                   background: '#6c757d',
                   borderRadius: '20px',
                   width: '100%',
-                  height: '75vh',
+                  height: '33rem',
                 }}
               >
                 <h1 style={{ color: 'white' }}>

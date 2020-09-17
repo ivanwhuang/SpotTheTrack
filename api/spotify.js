@@ -194,7 +194,6 @@ router.get('/initializeGameState', async (req, res) => {
                 hintStr1: hintStr1,
                 hintStr2: hintStr2,
               };
-              console.log(track);
               tracks.push(track);
             }
           }

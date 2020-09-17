@@ -99,49 +99,47 @@ export default function Home() {
         </Container>
       </div>
       <div className='landing-rules-wrapper'>
-        <Container className='landing-rules'>
+        <Container className='landing-rules' fluid>
           <h1>How to Play</h1>
-          <Row>
-            <Col className='rule-col'>
+          <Row style={{ marginTop: '2rem' }}>
+            <Col className='rule-col' xl={3} lg={6} sm={6}>
               <img
                 src='/images/how-to-play1.png'
                 alt='how-to-play1'
-                style={{}}
+                style={{ height: '15rem' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h4>Each Round ...</h4>
+                <h5>Each Round ...</h5>
               </div>
             </Col>
-            <Col className='rule-col'>
+            <Col className='rule-col' xl={3} lg={6} sm={6}>
               <img
                 src='/images/how-to-play2.png'
                 alt='how-to-play2'
-                style={{}}
+                style={{ height: '15rem' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h4>Try to guess the name of the song</h4>
+                <h5>Try to guess the name of the song</h5>
               </div>
             </Col>
-          </Row>
-          <Row>
-            <Col className='rule-col'>
+            <Col className='rule-col' xl={3} lg={6} sm={6}>
               <img
                 src='/images/how-to-play3.png'
                 alt='how-to-play3'
-                style={{}}
+                style={{ height: '15rem' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h4>Clues will be given out periodically</h4>
+                <h5>Clues will be given out periodically</h5>
               </div>
             </Col>
-            <Col className='rule-col'>
+            <Col className='rule-col' xl={3} lg={6} sm={6}>
               <img
                 src='/images/how-to-play4.png'
                 alt='how-to-play4'
-                style={{}}
+                style={{ height: '15rem' }}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h4>Winner goes to player with the most points</h4>
+                <h5>Winner goes to player with the most points</h5>
               </div>
             </Col>
           </Row>
