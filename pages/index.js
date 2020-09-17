@@ -104,48 +104,48 @@ export default function Home() {
           <Row>
             <Col className='rule-col'>
               <img
-                src='/images/placeholder.png'
-                alt='rules1'
-                style={{ width: '90%' }}
+                src='/images/how-to-play1.png'
+                alt='how-to-play1'
+                style={{}}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h5>Each Round ...</h5>
+                <h4>Each Round ...</h4>
               </div>
             </Col>
             <Col className='rule-col'>
               <img
-                src='/images/placeholder.png'
-                alt='rules1'
-                style={{ width: '90%' }}
+                src='/images/how-to-play2.png'
+                alt='how-to-play2'
+                style={{}}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h5>Try to guess the name of the song</h5>
+                <h4>Try to guess the name of the song</h4>
               </div>
             </Col>
           </Row>
           <Row>
             <Col className='rule-col'>
               <img
-                src='/images/placeholder.png'
-                alt='rules1'
-                style={{ width: '90%' }}
+                src='/images/how-to-play3.png'
+                alt='how-to-play3'
+                style={{}}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h5>Clues will be given out periodically.</h5>
+                <h4>Clues will be given out periodically</h4>
               </div>
             </Col>
             <Col className='rule-col'>
               <img
-                src='/images/placeholder.png'
-                alt='rules1'
-                style={{ width: '90%' }}
+                src='/images/how-to-play4.png'
+                alt='how-to-play4'
+                style={{}}
               ></img>
               <div style={{ marginTop: '1rem' }}>
-                <h5>Winner goes to player with the most points</h5>
+                <h4>Winner goes to player with the most points</h4>
               </div>
             </Col>
           </Row>
-          <div style={{ margin: '4rem 0' }}>
+          <div style={{ marginTop: '4rem' }}>
             <h2 style={{ margin: '1rem' }}>
               Why you may not see some of your favorite songs
             </h2>
@@ -158,7 +158,7 @@ export default function Home() {
               a preview url.
             </h6>
           </div>
-          <div>
+          <div style={{ marginTop: '3rem' }}>
             In Game icons made by{' '}
             <a
               href='https://www.flaticon.com/authors/pixel-perfect'

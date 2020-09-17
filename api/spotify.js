@@ -143,11 +143,8 @@ router.get('/initializeGameState', async (req, res) => {
             }
             if (randomTrack.preview_url !== null) {
               let hint1Index = getRandomInt(Math.floor(name.length / 2));
-              while (
-                name[hint1Index] === ' ' ||
-                name[hint1Index] === '-' ||
-                name[hint1Index] === '&'
-              ) {
+
+              while (name[hint1Index].match(/^[0-9a-zA-Z]$/) == null) {
                 hint1Index = getRandomInt(Math.floor(name.length / 2));
               }
 
@@ -156,39 +153,34 @@ router.get('/initializeGameState', async (req, res) => {
                 Math.floor(name.length / 2);
 
               while (
-                name[hint2Index] === ' ' ||
-                name[hint1Index] === '-' ||
-                name[hint1Index] === '&'
+                hint2Index == hint1Index ||
+                name[hint2Index].match(/^[0-9a-zA-Z]$/) == null
               ) {
                 hint2Index =
                   getRandomInt(Math.floor(name.length / 2)) +
                   Math.floor(name.length / 2);
               }
 
-              let noHintStr = [];
-              let hintStr1 = [];
-              let hintStr2 = [];
+              let noHintStr = '';
+              let hintStr1 = '';
+              let hintStr2 = '';
               for (let i = 0; i < name.length; i++) {
                 if (i == hint1Index) {
-                  noHintStr.push('_');
-                  hintStr1.push(name[i]);
-                  hintStr2.push(name[i]);
+                  noHintStr += '_';
+                  hintStr1 += name[i];
+                  hintStr2 += name[i];
                 } else if (i == hint2Index) {
-                  noHintStr.push('_');
-                  hintStr1.push('_');
-                  hintStr2.push(name[i]);
-                } else if (name[i] === ' ') {
-                  noHintStr.push(' ');
-                  hintStr1.push(' ');
-                  hintStr2.push(' ');
-                } else if (name[i] === '-') {
-                  noHintStr.push('-');
-                  hintStr1.push('-');
-                  hintStr2.push('-');
+                  noHintStr += '_';
+                  hintStr1 += '_';
+                  hintStr2 += name[i];
+                } else if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
+                  noHintStr += name[i];
+                  hintStr1 += name[i];
+                  hintStr2 += name[i];
                 } else {
-                  noHintStr.push('_');
-                  hintStr1.push('_');
-                  hintStr2.push('_');
+                  noHintStr += '_';
+                  hintStr1 += '_';
+                  hintStr2 += '_';
                 }
               }
 
@@ -202,6 +194,7 @@ router.get('/initializeGameState', async (req, res) => {
                 hintStr1: hintStr1,
                 hintStr2: hintStr2,
               };
+              console.log(track);
               tracks.push(track);
             }
           }

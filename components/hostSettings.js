@@ -72,7 +72,9 @@ export default function HostSetting({ updateSettings, settings }) {
   const handleSubmitSelectArtist = (newArtist) => {
     return (event) => {
       event.preventDefault();
-      setArtists([...artists, newArtist]);
+      if (!artists.includes(newArtist)) {
+        setArtists([...artists, newArtist]);
+      }
 
       setShowToolTip('on');
       setShowArtistModal(false);

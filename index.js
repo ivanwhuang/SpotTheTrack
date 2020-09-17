@@ -188,7 +188,7 @@ io.on('connection', (socket) => {
                 });
               }
             }
-          }, parseInt(settings.timer) * 1000);
+          }, (parseInt(settings.timer) + 2.5) * 1000);
         }, 5000);
       }
     } catch (err) {
