@@ -29,10 +29,7 @@ var rooms = {};
 // global variable keeping track of the room for each socket
 var roomOfSocket = {};
 
-const io = socketio(server, {
-  pingInterval: 300000,
-  pingTimeout: 300000,
-});
+const io = socketio(server);
 
 io.on('connection', (socket) => {
   console.log('New websocket connection: ' + socket.id);
