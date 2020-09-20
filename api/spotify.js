@@ -83,14 +83,12 @@ router.get('/initializeGameState', async (req, res) => {
     return arr[Math.floor(Math.random() * arr.length) % arr.length];
   };
 
-  const search = (type, query, limit) => {
+  const urlSearch = (type, query, limit, offset) => {
     return new Promise((resolve, reject) => {
+      let q = query.replace(/\s/g, '+');
+      let url = `https://api.spotify.com/v1/search?query=${q}&type=${type}&limit=${limit}&offset=${offset*limit}`;
       spotify
-        .search({
-          type: type,
-          query: query,
-          limit: limit,
-        })
+        .request(url)
         .then((response) => resolve(response))
         .catch((err) => reject(err));
     })
@@ -107,8 +105,16 @@ router.get('/initializeGameState', async (req, res) => {
     .artists;
   let limit = queryString.parse(req.query.limit).limit || '20';
   let searchLimit = '20';
+  let offset = 3;
+  let reqs = [];
 
-  Promise.all(artists.map((artist) => search('track', artist, searchLimit)))
+  for (let idx = 0; idx < offset; ++idx) {
+    artists.forEach((artist) => {
+      reqs.push(urlSearch('track', artist, searchLimit, idx));
+    });
+  }
+  
+  Promise.all(reqs)
     .then((allData) => {
       let items = allData.map((result) => result.tracks.items);
       let tracks = [];
@@ -119,8 +125,8 @@ router.get('/initializeGameState', async (req, res) => {
       filteredItems.forEach((item) =>
         item.forEach((track) => allTracks.push(track))
       );
-      let shuffledTracks = shuffle(allTracks);
 
+      let shuffledTracks = shuffle(allTracks);
       if (shuffledTracks.length < limit) {
         res.json(
           JSON.stringify({
@@ -132,7 +138,7 @@ router.get('/initializeGameState', async (req, res) => {
           let randomTrack = chooseRandom(shuffledTracks);
           let name = randomTrack.name
             .toString()
-            .split(/(\(.*|\s-\s.*)/)[0]
+            .split(/(\(.*|\s-\s.*|fe?a?t.*)/)[0]
             .trim();
           if (tracks.find((track) => track.name === name)) {
             continue;
