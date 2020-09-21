@@ -1,66 +1,77 @@
+import React, { useState, useEffect, useRef } from 'react';
+import styles from '../styles/components/GameChat.module.css';
+
 import { Button } from 'react-bootstrap';
-import React, { useState } from 'react';
 
-import ChatBubble from './chatBubble';
+export function ChatBubble({ name, isMyself, time, text }) {
+  return isMyself ? (
+    <div className={`${styles.msg} ${styles.rightMsg}`}>
+      <div className={styles.msgBubble}>
+        <div className={styles.msgInfo}>
+          <div className={styles.msgInfoName}>{name}</div>
+          <div className={styles.msgInfoTime}>{time}</div>
+        </div>
+        <div>{text}</div>
+      </div>
+    </div>
+  ) : (
+    <div className={`${styles.msg} ${styles.leftMsg}`}>
+      <div className={styles.msgBubble}>
+        <div className={styles.msgInfo}>
+          <div className={styles.msgInfoName}>{name}</div>
+          <div className={styles.msgInfoTime}>{time}</div>
+        </div>
+        <div>{text}</div>
+      </div>
+    </div>
+  );
+}
 
-export default function GameChat() {
-  const [msg, setMsg] = useState('');
-  const [chatLog, setChatLog] = useState([]);
+export default function GameChat({
+  chatLog,
+  socket_id,
+  guess,
+  handleGuessChange,
+  handleGuessSubmit,
+}) {
+  const messagesEndRef = useRef(null);
 
-  const handleMsgChange = (e) => {
-    setMsg(e.target.value);
+  const scrollToBottomOfChat = () => {
+    messagesEndRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'start',
+    });
   };
 
-  const handleMsgSubmit = (e) => {
-    e.preventDefault();
-    addToChatLog(msg);
-    setMsg('');
-  };
-
-  const addToChatLog = (text) => {
-    var msg = {
-      name: 'Ivan',
-      isMyself: true,
-      time: '12:47',
-      text: text,
-    };
-    setChatLog([...chatLog, msg]);
-  };
+  useEffect(() => {
+    scrollToBottomOfChat();
+  }, [chatLog]);
 
   return (
-    <div className='msger'>
-      <header className='msger-header'>
-        <div className='msger-header-title'>
-          <i className='fa fa-comment'></i> Game Chat
-        </div>
-        <div className='msger-header-options'>
-          <span>
-            <i className='fa fa-cog'></i>
-          </span>
-        </div>
-      </header>
-
-      <main className='msger-chat'>
-        {chatLog.map((msg) => (
+    <div className={styles.chat}>
+      <header className={styles.chatHeader}>Game Chat</header>
+      <main className={styles.chatContent}>
+        {chatLog.map((guess) => (
           <ChatBubble
-            key={msg.name}
-            isMyself={msg.isMyself}
-            name={msg.name}
-            time={msg.time}
-            text={msg.text}
+            key={Math.random()}
+            isMyself={guess.socketid == socket_id}
+            name={guess.name}
+            time={guess.time}
+            text={guess.text}
           />
         ))}
+        <div ref={messagesEndRef}></div>
       </main>
-
-      <form className='msger-inputarea' onSubmit={handleMsgSubmit}>
+      <form className={styles.guessInputLayout} onSubmit={handleGuessSubmit}>
         <input
           type='text'
-          className='msger-input'
+          className={styles.guessInput}
           placeholder='Take a guess!'
-          onChange={handleMsgChange}
-          value={msg}
+          onChange={handleGuessChange}
+          value={guess}
         ></input>
-        <Button variant='info' type='submit' className='msger-send-btn'>
+        <Button variant='info' type='submit' className={styles.sendGuessBtn}>
           Send
         </Button>
       </form>

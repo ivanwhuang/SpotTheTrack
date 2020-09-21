@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
+
+import styles from '../styles/Lobby.module.css';
 
 import axios from 'axios';
 import io from 'socket.io-client';
 
-import copy from 'copy-to-clipboard';
 import HostSettings from '../components/hostSettings';
 import Settings from '../components/settings';
+// import ChatBubble from '../components/chatBubble.js';
+import GameChat from '../components/gameChat.js';
 
-import ChatBubble from '../components/chatBubble.js';
+import copy from 'copy-to-clipboard';
 import AudioPlayer from 'react-h5-audio-player';
 import moment from 'moment';
-
-import { useRouter } from 'next/router';
-
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import Blur from 'react-blur-image';
-
 import HashLoader from 'react-spinners/HashLoader';
 
 import {
@@ -27,7 +27,6 @@ import {
   Modal,
   Card,
   Toast,
-  ListGroup,
 } from 'react-bootstrap';
 
 const frontEndBaseURL =
@@ -61,16 +60,6 @@ export default function Lobby() {
 
   const socket = useSocket(backendBaseURL);
 
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottomOfChat = () => {
-    messagesEndRef.current.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'start',
-    });
-  };
-
   const [socketConnected, setSocketConnected] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -100,7 +89,7 @@ export default function Lobby() {
   const [trackList, setTrackList] = useState([]);
   const [hint, setHint] = useState([]);
 
-  const [correctBanner, setCorrectBanner] = useState('Take a guess!');
+  const [AttemptResponse, setAttemptResponse] = useState('Take a guess!');
   const [guess, setGuess] = useState('');
   const [answered, setAnswered] = useState(false);
   const [chatLog, setChatLog] = useState([]);
@@ -153,7 +142,7 @@ export default function Lobby() {
           setRoomState('game');
           setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
           setTimerKey(initialTimerKey);
-          setCorrectBanner('Take a guess!');
+          setAttemptResponse('Take a guess!');
           setPlayers(playerInfo);
           setChatLog(roundChat);
         }
@@ -178,7 +167,7 @@ export default function Lobby() {
         };
 
         setCurrentGameState(newGameState);
-        setCorrectBanner('Take a guess!');
+        setAttemptResponse('Take a guess!');
         setRoundEnd(false);
         setAnswered(false);
         setCountDown(Math.floor(serverTime / 1000 - Date.now() / 1000));
@@ -187,7 +176,7 @@ export default function Lobby() {
 
       socket.on('chat', (roundChat) => {
         setChatLog(roundChat);
-        scrollToBottomOfChat();
+        // scrollToBottomOfChat();
       });
 
       socket.on('endOfGame', () => {
@@ -209,7 +198,7 @@ export default function Lobby() {
   const renderTime = ({ remainingTime }) => {
     if (currentGameState.round <= 0) {
       return (
-        <div style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}>
+        <div className={styles.timerText}>
           <div>Starting In</div>
           <div>{remainingTime}</div>
           <div>seconds</div>
@@ -217,9 +206,7 @@ export default function Lobby() {
       );
     } else {
       if (remainingTime <= 0) {
-        return (
-          <div style={{ fontSize: '24px', color: 'white' }}>Time's up!</div>
-        );
+        return <div className={styles.timerText}>Time's up!</div>;
       } else {
         if (remainingTime == Math.floor(settings.timer / 3)) {
           setHint(currentGameState.track.hintStr2);
@@ -228,9 +215,7 @@ export default function Lobby() {
           setHint(currentGameState.track.hintStr1);
         }
         return (
-          <div
-            style={{ fontSize: '24px', textAlign: 'center', color: 'white' }}
-          >
+          <div className={styles.timerText}>
             <div>Remaining</div>
             <div>{remainingTime}</div>
             <div>seconds</div>
@@ -245,24 +230,33 @@ export default function Lobby() {
     let winners = [];
     players.forEach((player) => {
       if (player.score >= highScore) {
-        winners.push(player.name);
         highScore = player.score;
+      }
+    });
+    players.forEach((player) => {
+      if (player.score == highScore) {
+        winners.push(player.name);
       }
     });
     return <h1 style={{ color: 'White' }}>Winner(s): {winners.join(', ')}</h1>;
   };
 
-  const addNewMsgToChat = (msg) => {
-    setChatLog(...chatLog, msg);
-  };
-
   const copyInviteLink = () => {
     copy(`${frontEndBaseURL}/lobby?room=${room}`);
+    setToastInfo({
+      header: 'Copied!',
+      text: 'Invitation link copied to clipboard.',
+    });
+    setShowToast(true);
   };
 
   // used in HostSettings component
   const updateSettings = (settings) => {
     socket.emit('updateSettings', { room, settings });
+  };
+
+  const handleBackToHome = () => {
+    router.push('/');
   };
 
   const handleNameChange = (e) => {
@@ -343,11 +337,11 @@ export default function Lobby() {
           guess.trim().toLowerCase() ===
           currentGameState.track.name.toLowerCase()
         ) {
-          setCorrectBanner('Correct!');
+          setAttemptResponse('Correct!');
           socket.emit('correctGuess', room);
           setAnswered(true);
         } else {
-          setCorrectBanner('Try Again!');
+          setAttemptResponse('Try Again!');
           addToChatLog(guess);
         }
       } else {
@@ -360,117 +354,93 @@ export default function Lobby() {
   if (roomState === 'lobby') {
     return (
       <div>
-        <div className='lobby-content'>
-          <Container fluid style={{ padding: '0 2rem' }}>
-            {loading ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '80vh',
-                }}
-              >
-                <HashLoader size={180} loading={loading} color='#17a2b8' />
-              </div>
-            ) : (
-              <Row>
-                <Col style={{ minHeight: '80vh' }}>
-                  <h1 style={{ color: 'white', marginBottom: '2rem' }}></h1>
-                  <h5 style={{ color: 'white' }}>Room ID:</h5>
-                  <p style={{ color: 'lightGray' }}>{room}</p>
-                  <h5 style={{ color: 'white' }}>
-                    Invite Your Fiends!{' '}
-                    <Button onClick={copyInviteLink} variant='info' size='sm'>
-                      Copy Link
-                    </Button>{' '}
-                  </h5>
-                  <p style={{ color: 'lightGray' }}>
-                    {`${frontEndBaseURL}/lobby?room=${room}`}
-                  </p>
-                  <div style={{ textAlign: 'center' }}>
-                    <h1 style={{ color: 'white' }}>Players</h1>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      flexWrap: 'wrap',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {players.map((player) => (
-                      <Card
-                        variant='dark'
-                        key={player.socket_id}
-                        style={{
-                          width: '9rem',
-                          margin: '1rem',
-                          textAlign: 'center',
-                          background: 'lightgray',
-                          border: 'thick solid gray',
-                        }}
-                      >
-                        <Card.Body style={{ padding: '1rem 0.75rem' }}>
-                          <div>
-                            <i
-                              className='fa fa-user fa-3x'
-                              aria-hidden='true'
-                              style={{ color: '#505050' }}
-                            ></i>
-                          </div>
-                          <div>
-                            {player.name} {player.host && <b>[Host] </b>}
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    ))}
-                  </div>
-                </Col>
-                <Col lg='6'>
-                  <Toast
-                    onClose={() => setShowToast(false)}
-                    show={showToast}
-                    delay={4000}
-                    autohide
-                    style={{
-                      position: 'absolute',
-                      top: '0',
-                      right: '20px',
-                      width: '15rem',
-                    }}
-                  >
-                    <Toast.Header>
-                      <strong className='mr-auto'>{toastInfo.header}</strong>
-                      <small>{moment().format('LT')}</small>
-                    </Toast.Header>
-                    <Toast.Body>{toastInfo.text}</Toast.Body>
-                  </Toast>
-                  {isHost ? (
-                    <HostSettings
-                      updateSettings={updateSettings}
-                      settings={settings}
-                    />
-                  ) : (
-                    <Settings settings={settings} />
+        <Container fluid className={styles.lobbyContainer}>
+          {loading ? (
+            <div className={styles.loadingLayout}>
+              <HashLoader size={180} loading={loading} color='#17a2b8' />
+            </div>
+          ) : (
+            <Row>
+              <Col style={{ minHeight: '80vh' }}>
+                <Button
+                  onClick={handleBackToHome}
+                  className={styles.backToHomeBtn}
+                  variant='info'
+                >
+                  <i className='fa fa-arrow-left' aria-hidden='true'></i> Back
+                  to Home
+                </Button>
+                <h5 style={{ color: 'white' }}>Room ID:</h5>
+                <p style={{ color: 'lightGray' }}>{room}</p>
+                <h5 style={{ color: 'white' }}>
+                  Invite Your Fiends!{' '}
+                  <Button onClick={copyInviteLink} variant='info' size='sm'>
+                    Copy Link
+                  </Button>{' '}
+                </h5>
+                <p style={{ color: 'lightGray' }}>
+                  {`${frontEndBaseURL}/lobby?room=${room}`}
+                </p>
+                <div style={{ textAlign: 'center' }}>
+                  <h1 style={{ color: 'white' }}>Players</h1>
+                </div>
+                <div className={styles.playersLayout}>
+                  {players.map((player) => (
+                    <Card key={player.socket_id} className={styles.playerCard}>
+                      <Card.Body className={styles.playerCardBody}>
+                        <div>
+                          <i
+                            className='fa fa-user fa-3x'
+                            aria-hidden='true'
+                            style={{ color: '#505050' }}
+                          ></i>
+                        </div>
+                        <div>
+                          {player.name} {player.host && <b>[Host] </b>}
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                </div>
+              </Col>
+              <Col lg='6'>
+                <Toast
+                  onClose={() => setShowToast(false)}
+                  show={showToast}
+                  delay={4000}
+                  autohide
+                  className={styles.toastLayout}
+                >
+                  <Toast.Header>
+                    <strong className='mr-auto'>{toastInfo.header}</strong>
+                    <small>{moment().format('LT')}</small>
+                  </Toast.Header>
+                  <Toast.Body>{toastInfo.text}</Toast.Body>
+                </Toast>
+                {isHost ? (
+                  <HostSettings
+                    updateSettings={updateSettings}
+                    settings={settings}
+                  />
+                ) : (
+                  <Settings settings={settings} />
+                )}
+                <div style={{ textAlign: 'center' }}>
+                  {isHost && (
+                    <Button
+                      onClick={handleStartGame}
+                      variant='info'
+                      className={styles.startGameBtn}
+                    >
+                      <i className='fa fa-rocket' aria-hidden='true'></i> Start
+                      Game
+                    </Button>
                   )}
-                  <div style={{ textAlign: 'center' }}>
-                    {isHost && (
-                      <Button
-                        onClick={handleStartGame}
-                        variant='info'
-                        style={{ marginTop: '1rem', width: '50%' }}
-                      >
-                        <i className='fa fa-rocket' aria-hidden='true'></i>{' '}
-                        Start Game
-                      </Button>
-                    )}
-                  </div>
-                </Col>
-              </Row>
-            )}
-          </Container>
-        </div>
+                </div>
+              </Col>
+            </Row>
+          )}
+        </Container>
         <Form>
           <Modal
             show={showModal}
@@ -481,362 +451,218 @@ export default function Lobby() {
             <Modal.Header>
               <Modal.Title>What is your name?</Modal.Title>
             </Modal.Header>
-            <Form.Group controlId='nameForRoom' className='landing-button'>
-              <Form.Control
-                type='text'
-                placeholder='Name'
-                size='lg'
-                onChange={handleNameChange}
-              />
-            </Form.Group>
-            <Modal.Footer>
-              <Button variant='secondary' onClick={handleSubmitName}>
-                Enter Game Lobby
-              </Button>
-            </Modal.Footer>
+            <Modal.Body>
+              <Form.Group controlId='nameForRoom'>
+                <Form.Control
+                  type='text'
+                  placeholder='Name'
+                  size='lg'
+                  onChange={handleNameChange}
+                />
+              </Form.Group>
+              <Modal.Footer>
+                <Button variant='secondary' onClick={handleSubmitName}>
+                  Enter Game Lobby
+                </Button>
+              </Modal.Footer>
+            </Modal.Body>
           </Modal>
         </Form>
       </div>
     );
   } else if (roomState === 'game') {
     return (
-      <div className='game-background'>
-        <Container fluid style={{ padding: '0 2rem' }}>
-          <Row>
-            <Col
-              md={6}
-              lg={4}
-              style={{ textAlign: 'center', minHeight: '80vh' }}
-            >
-              <div style={{ margin: '1rem 0' }}>
-                {countDown == null ? (
-                  'Game has not started..'
-                ) : (
-                  <div className='timer-wrapper'>
-                    <CountdownCircleTimer
-                      key={timerKey}
-                      isPlaying
-                      onComplete={() => {
-                        setHint(currentGameState.track.name);
-                        setRoundEnd(true);
-                      }}
-                      duration={countDown}
-                      colors={
-                        currentGameState.round > 0
-                          ? [['#17a2b8'], ['#17b8a6']]
-                          : [['#EF798A'], ['#F4A7B2']]
-                      }
-                      style={{ width: '0' }}
-                    >
-                      {renderTime}
-                    </CountdownCircleTimer>
-                  </div>
-                )}
-              </div>
-              <h1 style={{ color: 'white' }}>Players</h1>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
+      <Container fluid className={styles.gameContainer}>
+        <Row>
+          <Col md={6} lg={4} style={{ textAlign: 'center', minHeight: '80vh' }}>
+            <div className={styles.timerLayout}>
+              <CountdownCircleTimer
+                key={timerKey}
+                isPlaying
+                onComplete={() => {
+                  setHint(currentGameState.track.name);
+                  setRoundEnd(true);
                 }}
+                duration={countDown}
+                colors={
+                  currentGameState.round > 0
+                    ? [['#17a2b8'], ['#17b8a6']]
+                    : [['#EF798A'], ['#F4A7B2']]
+                }
               >
-                {players.map((player) => (
-                  <Card
-                    variant='dark'
-                    key={player.socket_id}
-                    style={{
-                      width: '9rem',
-                      margin: '0.5rem',
-                      textAlign: 'center',
-                      background: 'lightgray',
-                      border: player.answered
-                        ? 'thick solid #28B463'
-                        : 'thick solid gray',
-                    }}
-                  >
-                    <Card.Body style={{ padding: '1rem 0.75rem' }}>
-                      <div>
-                        <i
-                          class='fa fa-user fa-2x'
-                          aria-hidden='true'
-                          style={{ color: '#505050' }}
-                        ></i>
-                      </div>
-                      <div style={{ fontSize: '14px' }}>
-                        {player.name} {player.host && <b>[Host] </b>}
-                      </div>
-                    </Card.Body>
-                    <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
-                      {player.score}
-                    </Card.Footer>
-                  </Card>
-                ))}
-              </div>
-            </Col>
-            <Col
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-              }}
-              md={6}
-              lg={4}
-            >
-              <div
-                style={{
-                  padding: '2rem 1rem',
-                  background: '#6c757d',
-                  borderRadius: '20px',
-                  width: '100%',
-                  height: '33rem',
-                }}
-              >
-                <h1 style={{ color: 'white' }}>
-                  {currentGameState.round == settings.numRounds
-                    ? 'Last Round'
-                    : currentGameState.round > 0
-                    ? `Round ${currentGameState.round}`
-                    : 'Game Will Begin Shortly'}
-                </h1>
-                <h4
-                  style={{
-                    textAlign: 'center',
-                    color: 'white',
-                  }}
+                {renderTime}
+              </CountdownCircleTimer>
+            </div>
+            <h1 style={{ color: 'white' }}>Players</h1>
+            <div className={styles.playersLayout}>
+              {players.map((player) => (
+                <Card
+                  key={player.socket_id}
+                  className={
+                    player.answered
+                      ? styles.playerCardAnswered
+                      : styles.playerCard
+                  }
                 >
-                  {correctBanner} &nbsp;
-                  {correctBanner === 'Correct!' ? (
-                    <img
-                      style={{
-                        height: '1.5rem',
-                        marginTop: '0',
-                        marginBottom: '0.3rem',
-                      }}
-                      src='/images/check.png'
-                      alt='correct'
-                    />
-                  ) : correctBanner === 'Try Again!' ? (
-                    <img
-                      style={{
-                        height: '1.5rem',
-                        marginTop: '0',
-                        marginBottom: '0.3rem',
-                        opacity: '0.8',
-                      }}
-                      src='/images/remove.png'
-                      alt='wrong'
-                    />
-                  ) : null}
-                </h4>
-                <div>
-                  <Blur
-                    className='test-image'
-                    img={
-                      currentGameState.round > 0
-                        ? currentGameState.track.artwork
-                        : ''
-                    }
-                    blurRadius={8}
-                    style={{
-                      width: 200,
-                      height: 200,
-                      marginLeft: 'auto',
-                      marginRight: 'auto',
-                      borderRadius: '20px',
-                    }}
-                  >
-                    {}
-                  </Blur>
-                  <div style={{ color: 'white', margin: '1.5rem 0' }}>
-                    <h3>
-                      {currentGameState.round > 0 &&
-                        [...hint].map((c) =>
-                          c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
-                        )}
-                    </h3>
-                  </div>
-                  <AudioPlayer
-                    src={
-                      currentGameState.round > 0
-                        ? currentGameState.track.preview
-                        : null
-                    }
-                    autoPlayAfterSrcChange
-                    volume={0.2}
-                    style={{
-                      marginLeft: 'auto',
-                      marginRight: 'auto',
-                      width: '80%',
-                      borderRadius: '20px',
-                    }}
+                  <Card.Body className={styles.playerCardBody}>
+                    <div>
+                      <i
+                        class='fa fa-user fa-2x'
+                        aria-hidden='true'
+                        style={{ color: '#505050' }}
+                      ></i>
+                    </div>
+                    <div>
+                      {player.name} {player.host && <b>[Host] </b>}
+                    </div>
+                  </Card.Body>
+                  <Card.Footer className={styles.playerCardFooter}>
+                    {player.score}
+                  </Card.Footer>
+                </Card>
+              ))}
+            </div>
+          </Col>
+          <Col className={styles.roundInfoLayout} md={6} lg={4}>
+            <div className={styles.roundInfo}>
+              <h1>
+                {currentGameState.round == settings.numRounds
+                  ? 'Last Round'
+                  : currentGameState.round > 0
+                  ? `Round ${currentGameState.round}`
+                  : 'Game Will Begin Shortly'}
+              </h1>
+              <h4>
+                {AttemptResponse} &nbsp;
+                {AttemptResponse === 'Correct!' ? (
+                  <img
+                    className={styles.attemptResponse}
+                    src='/images/check.png'
+                    alt='correct'
                   />
+                ) : AttemptResponse === 'Try Again!' ? (
+                  <img
+                    className={styles.attemptResponse}
+                    src='/images/remove.png'
+                    alt='wrong'
+                  />
+                ) : null}
+              </h4>
+              <div>
+                <Blur
+                  img={
+                    currentGameState.round > 0
+                      ? currentGameState.track.artwork
+                      : ''
+                  }
+                  blurRadius={8}
+                  className={styles.blurTrackArtwork}
+                >
+                  {}
+                </Blur>
+                <div className={styles.hintLabel}>
+                  <h3>
+                    {currentGameState.round > 0 &&
+                      [...hint].map((c) =>
+                        c != ' ' ? <span> {c} </span> : <span> &nbsp; </span>
+                      )}
+                  </h3>
                 </div>
+                <AudioPlayer
+                  src={
+                    currentGameState.round > 0
+                      ? currentGameState.track.preview
+                      : null
+                  }
+                  autoPlayAfterSrcChange
+                  volume={0.2}
+                  className={styles.audioPlayer}
+                />
               </div>
-            </Col>
-            <Col
-              md={12}
-              lg={4}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <div className='msger'>
-                <header className='msger-header'>
-                  <div className='msger-header-title'>Game Chat</div>
-                </header>
-                <main className='msger-chat'>
-                  {chatLog.map((guess) => (
-                    <ChatBubble
-                      key={Math.random()}
-                      isMyself={guess.socketid == socket.id}
-                      name={guess.name}
-                      time={guess.time}
-                      text={guess.text}
-                    />
-                  ))}
-                  <div ref={messagesEndRef}></div>
-                </main>
-                <form className='msger-inputarea' onSubmit={handleGuessSubmit}>
-                  <input
-                    type='text'
-                    className='msger-input'
-                    placeholder='Take a guess!'
-                    onChange={handleGuessChange}
-                    value={guess}
-                  ></input>
-                  <Button
-                    variant='info'
-                    type='submit'
-                    className='msger-send-btn'
-                  >
-                    Send
-                  </Button>
-                </form>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+            </div>
+          </Col>
+          <Col md={12} lg={4} className={styles.chatLayout}>
+            <GameChat
+              chatLog={chatLog}
+              socket_id={socket.id}
+              guess={guess}
+              handleGuessChange={handleGuessChange}
+              handleGuessSubmit={handleGuessSubmit}
+            />
+          </Col>
+        </Row>
+      </Container>
     );
   } else {
     return (
-      <div className='endOfGame-content'>
-        <Container fluid style={{ padding: '0 2rem' }}>
-          <Row>
-            <Col style={{ minHeight: '80vh', textAlign: 'center' }}>
-              <h1 style={{ color: 'white', marginBottom: '2rem' }}>
-                Final Scores
-              </h1>
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
-                {players.map((player) => (
-                  <Card
-                    variant='dark'
-                    key={player.socket_id}
-                    style={{
-                      width: '9rem',
-                      margin: '0.5rem',
-                      textAlign: 'center',
-                      background: 'lightgray',
-                      border: 'thick solid gray',
-                    }}
-                  >
-                    <Card.Body style={{ padding: '1rem 0.75rem' }}>
-                      <div>
-                        <i
-                          class='fa fa-user fa-3x'
-                          aria-hidden='true'
-                          style={{ color: '#505050' }}
-                        ></i>
-                      </div>
-                      <div>
-                        {player.name} {player.host && <b>[Host] </b>}
-                      </div>
-                    </Card.Body>
-                    <Card.Footer style={{ padding: '.1rem 1.25rem' }}>
-                      {player.score}
-                    </Card.Footer>
+      <Container fluid className={styles.endGameContainer}>
+        <Row>
+          <Col style={{ minHeight: '80vh', textAlign: 'center' }}>
+            <h1 style={{ color: 'white', marginBottom: '2rem' }}>
+              Final Scores
+            </h1>
+            <div className={styles.playersLayout}>
+              {players.map((player) => (
+                <Card key={player.socket_id} className={styles.playerCard}>
+                  <Card.Body className={styles.playerCardBody}>
+                    <div>
+                      <i
+                        class='fa fa-user fa-3x'
+                        aria-hidden='true'
+                        style={{ color: '#505050' }}
+                      ></i>
+                    </div>
+                    <div>
+                      {player.name} {player.host && <b>[Host] </b>}
+                    </div>
+                  </Card.Body>
+                  <Card.Footer className={styles.playerCardFooter}>
+                    {player.score}
+                  </Card.Footer>
+                </Card>
+              ))}
+            </div>
+            <Button
+              variant='info'
+              className={styles.backToLobbyBtn}
+              onClick={() => setRoomState('lobby')}
+            >
+              Return to Lobby
+            </Button>
+          </Col>
+          <Col lg='7' style={{ textAlign: 'center' }}>
+            <Winners />
+            <div
+              style={{
+                margin: '2rem 0',
+              }}
+            >
+              <h4 style={{ color: 'White' }}>Songs used this Game</h4>
+              <div className={styles.songCardsLayout}>
+                {trackList.map((track) => (
+                  <Card key={track.name} className={styles.songCard}>
+                    <a href={track.url} target='_blank'>
+                      <img
+                        className='card-img-top'
+                        src={track.artwork}
+                        alt='song-img'
+                      />
+                      <Card.Body className={styles.songCardBody}>
+                        <h6 className='card-title'>{track.name}</h6>
+                        <p>
+                          {track.artists
+                            .map((artist) => artist.name)
+                            .join(', ')}
+                        </p>
+                      </Card.Body>
+                    </a>
                   </Card>
                 ))}
               </div>
-              <Button
-                variant='info'
-                style={{ marginTop: '1rem', width: '50%' }}
-                onClick={() => setRoomState('lobby')}
-              >
-                Return to Lobby
-              </Button>
-            </Col>
-            <Col lg='7' style={{ textAlign: 'center' }}>
-              {/* <h1>Winner(s): {getWinners.join(', ')}</h1> */}
-              <Winners />
-              <div
-                style={{
-                  margin: '2rem 0',
-                }}
-              >
-                <h4 style={{ color: 'White' }}>Songs used this Game</h4>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {trackList.map((track) => (
-                    <Card
-                      key={track.name}
-                      style={{
-                        width: '10rem',
-                        margin: '0.5rem',
-                        textAlign: 'center',
-                        background: '#fdfdfe',
-                      }}
-                      className='song-card'
-                    >
-                      <a
-                        style={{
-                          color: '#212529',
-                          textDecoration: 'none',
-                          padding: '0',
-                        }}
-                        href={track.url}
-                        target='_blank'
-                      >
-                        <img
-                          class='card-img-top'
-                          src={track.artwork}
-                          alt='song-img'
-                        />
-                        <Card.Body style={{ padding: '1rem 1rem 0rem 1rem' }}>
-                          <h6 class='card-title'>{track.name}</h6>
-                          <p style={{ fontSize: '12px' }}>
-                            {track.artists
-                              .map((artist) => artist.name)
-                              .join(', ')}
-                          </p>
-                        </Card.Body>
-                      </a>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
     );
   }
 }

@@ -1,15 +1,17 @@
 import { Navbar, Nav } from 'react-bootstrap';
 import Link from 'next/link';
 
+import styles from '../styles/components/Footer.module.css';
+
 export default function Footer() {
   return (
-    <div className='footer'>
+    <div className={styles.footer}>
       <h4>
         SpotTheTrack By{' '}
         <a
           href='https://ivanwhuang.me/'
           target='_blank'
-          className='footer-link'
+          className={styles.footerLink}
         >
           Ivan Huang
         </a>{' '}
@@ -17,7 +19,7 @@ export default function Footer() {
         <a
           href='https://github.com/butler-jelee21'
           target='_blank'
-          className='footer-link'
+          className={styles.footerLink}
         >
           Jesse Lee
         </a>
@@ -27,7 +29,7 @@ export default function Footer() {
         <a
           href='https://github.com/younghuangbao/SpotTheTrack'
           target='_black'
-          className='footer-link'
+          className={styles.footerLink}
         >
           Github <i className='fa fa-github'></i>
         </a>

@@ -1,0 +1,36 @@
+.settings {
+  color: white;
+}
+
+.removeArtistBtn {
+  float: right;
+  font-size: 0.65rem;
+}
+
+.artistListItem {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+  color: #212529;
+  padding: 0.5rem 1rem;
+}
+
+.artistModalBody {
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('/images/mountain.jpg') no-repeat center center/cover;
+  height: 32rem;
+  padding: 2rem 4rem;
+}
+
+.artistCard {
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.9);
+  height: 28rem;
+  width: 15rem;
+  margin: auto;
+}
+
+.artistCardBody {
+  overflow-y: scroll;
+}
+
+.artistImg {
+  height: 15rem;
+}

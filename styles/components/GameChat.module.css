@@ -1,0 +1,118 @@
+.chatLayout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 867px;
+  margin: 25px 10px;
+  height: 33rem;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 15px 15px -5px rgba(0, 0, 0, 0.2);
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 2px solid #ddd;
+  background: #eee;
+  font-size: 20px;
+  color: #666;
+}
+
+.chatContent {
+  background-color: #fcfcfe;
+  flex: 1;
+  overflow-y: scroll;
+  padding: 20px;
+}
+.chatContent::-webkit-scrollbar {
+  width: 6px;
+}
+.chatContent::-webkit-scrollbar-track {
+  background: #ddd;
+}
+.chatContent::-webkit-scrollbar-thumb {
+  background: #bdbdbd;
+}
+.msg {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+.msg:last-of-type {
+  margin: 0;
+}
+/* .msgImg {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  background: #ddd;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  border-radius: 50%;
+} */
+.msgBubble {
+  max-width: 450px;
+  padding: 12px;
+  border-radius: 15px;
+  background: #ececec;
+}
+.msgInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.msgInfoName {
+  margin-right: 10px;
+  font-weight: bold;
+}
+.msgInfoTime {
+  font-size: 0.85em;
+}
+
+.leftMsg .msgBubble {
+  border-bottom-left-radius: 0;
+}
+
+.rightMsg {
+  flex-direction: row-reverse;
+}
+.rightMsg .msgBubble {
+  background: #579ffb;
+  color: #fff;
+  border-bottom-right-radius: 0;
+}
+.rightMsg .msgImg {
+  margin: 0 0 0 10px;
+}
+
+.guessInputLayout {
+  display: flex;
+  padding: 10px;
+  border-top: 2px solid #ddd;
+  background: #eee;
+}
+.guessInputLayout * {
+  padding: 10px;
+  border: none;
+  border-radius: 3px;
+  font-size: 1em;
+}
+.guessInput {
+  flex: 1;
+  background: #ddd;
+}
+.sendGuessBtn {
+  margin-left: 10px;
+  font-weight: bold;
+}

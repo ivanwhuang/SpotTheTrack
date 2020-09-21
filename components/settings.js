@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import styles from '../styles/components/Settings.module.css';
+
 import { Row, Col, Form, ListGroup } from 'react-bootstrap';
 
 import RangeSlider from 'react-bootstrap-range-slider';
@@ -13,8 +15,8 @@ export default function Settings({ settings }) {
       <h6 style={{ color: 'white' }}>
         Only the host of the room can change settings
       </h6>
-      <div className='settings'>
-        <Form style={{ color: 'white' }}>
+      <div className={styles.settings}>
+        <Form>
           <fieldset disabled>
             <Form.Group as={Row} style={{ marginTop: '2rem' }}>
               <Form.Label column lg={4}>
@@ -40,8 +42,8 @@ export default function Settings({ settings }) {
               <Col lg={8}>
                 <RangeSlider
                   value={numRounds}
-                  min={2}
-                  max={8}
+                  min={5}
+                  max={10}
                   step={1}
                   size='lg'
                   tooltipPlacement='top'
@@ -61,10 +63,7 @@ export default function Settings({ settings }) {
                       <ListGroup.Item
                         variant='light'
                         key={artist}
-                        style={{
-                          border: '1px solid rgba(0, 0, 0, 0.3)',
-                          color: '#212529',
-                        }}
+                        className={styles.artistListItem}
                       >
                         {artist}
                       </ListGroup.Item>

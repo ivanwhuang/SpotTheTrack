@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import styles from '../styles/components/Settings.module.css';
+
 import {
   Row,
   Col,
@@ -115,8 +117,8 @@ export default function HostSetting({ updateSettings, settings }) {
       <h6 style={{ color: 'white' }}>
         Only the host of the room can change settings
       </h6>
-      <div className='settings'>
-        <Form style={{ color: 'white' }}>
+      <div className={styles.settings}>
+        <Form>
           <fieldset>
             <Form.Group as={Row} style={{ marginTop: '2rem' }}>
               <Form.Label column lg={4}>
@@ -188,16 +190,13 @@ export default function HostSetting({ updateSettings, settings }) {
                       <ListGroup.Item
                         variant='light'
                         key={artist}
-                        style={{
-                          border: '1px solid rgba(0, 0, 0, 0.3)',
-                          color: '#212529',
-                        }}
+                        className={styles.artistListItem}
                       >
                         {artist}
                         <Button
                           variant='secondary'
                           size='sm'
-                          style={{ float: 'right', fontSize: '0.650rem' }}
+                          className={styles.removeArtistBtn}
                           onClick={handleRemoveArtist(artist)}
                         >
                           <i class='fa fa-times fa-xs' aria-hidden='true'></i>
@@ -220,10 +219,7 @@ export default function HostSetting({ updateSettings, settings }) {
           <Modal.Header closeButton>
             <Modal.Title>Which Artist?</Modal.Title>
           </Modal.Header>
-          <Modal.Body
-            className='artist-modal-background'
-            style={{ padding: '2rem 4rem' }}
-          >
+          <Modal.Body className={styles.artistModalBody}>
             <Form.Group controlId='ArtistSearchModal'>
               <Carousel
                 draggable={true}
@@ -234,8 +230,7 @@ export default function HostSetting({ updateSettings, settings }) {
                   <Card
                     border='dark'
                     key={artist['name']}
-                    style={{ width: '15rem', margin: 'auto' }}
-                    className='artist-card'
+                    className={styles.artistCard}
                   >
                     <Card.Img
                       src={
@@ -243,15 +238,15 @@ export default function HostSetting({ updateSettings, settings }) {
                           ? artist['images'][0]['url']
                           : '/images/placeholder.png'
                       }
-                      style={{ height: '15rem' }}
+                      className={styles.artistImg}
                     />
 
-                    <Card.Body style={{ overflowY: 'scroll' }}>
+                    <Card.Body className={styles.artistCardBody}>
                       <Card.Title>
                         <a></a>
                         {artist['name']}
                       </Card.Title>
-                      <Card.Text style={{ marginBottom: '0' }}>
+                      <Card.Text>
                         <b>Genres: </b>
 
                         {artist['genres'].length > 0
@@ -271,56 +266,6 @@ export default function HostSetting({ updateSettings, settings }) {
                   </Card>
                 ))}
               </Carousel>
-
-              {/* <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                }}
-              >
-                {artistResults.map((artist) => (
-                  <Card
-                    border='dark'
-                    key={artist['name']}
-                    style={{ width: '15rem', margin: '1rem' }}
-                    className='artist-card'
-                  >
-                    <Card.Img
-                      src={
-                        artist['images'].length > 0
-                          ? artist['images'][0]['url']
-                          : '/images/placeholder.png'
-                      }
-                      style={{ height: '15rem' }}
-                    />
-
-                    <Card.Body>
-                      <Card.Title>
-                        <a></a>
-                        {artist['name']}
-                      </Card.Title>
-                      <Card.Text style={{ marginBottom: '0' }}>
-                        <b>Genres: </b>
-
-                        {artist['genres'].length > 0
-                          ? artist['genres'].join(', ')
-                          : 'Unknown'}
-                      </Card.Text>
-                    </Card.Body>
-                    <Card.Footer>
-                      <Button
-                        variant='info'
-                        block
-                        onClick={handleSubmitSelectArtist(artist['name'])}
-                      >
-                        Add to List
-                      </Button>
-                    </Card.Footer>
-                  </Card>
-                ))}
-              </div> */}
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>

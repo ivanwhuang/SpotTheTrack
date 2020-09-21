@@ -1,0 +1,16 @@
+.footer {
+  background: #343a40;
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.footerLink {
+  color: #17a2b8;
+  transition: 0.3s;
+}
+
+.footerLink:hover {
+  color: #148ea1;
+  text-decoration: none;
+}
