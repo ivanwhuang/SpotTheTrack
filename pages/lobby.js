@@ -68,6 +68,7 @@ export default function Lobby() {
   const [toastInfo, setToastInfo] = useState({ header: '', text: '' });
   const [name, setName] = useState('');
   const [isHost, setIsHost] = useState(false);
+  const [falseRoom, setFalseRoom] = useState(false);
   const [room, setRoom] = useState('');
   const [players, setPlayers] = useState([]);
   const [settings, setSettings] = useState({
@@ -103,8 +104,9 @@ export default function Lobby() {
         setSocketConnected(true);
       });
 
-      socket.on('roomCode', (newRoom) => {
+      socket.on('newRoom', (newRoom) => {
         setRoom(newRoom);
+        setLoading(false);
       });
 
       socket.on('changeHost', () => {
@@ -188,7 +190,6 @@ export default function Lobby() {
       });
 
       socket.on('disconnect', () => {
-        alert('You have been disconnected');
         router.push('/');
         console.log('you have been disconncted');
       });
@@ -276,20 +277,17 @@ export default function Lobby() {
 
         const isValidRoom = response.data;
 
-        setLoading(false);
-
         if (isValidRoom) {
           socket.emit('joinRoom', { name, room });
           setRoom(room);
+          setLoading(false);
         } else {
-          alert('This room does not exist');
-          router.push('/');
+          setFalseRoom(true);
         }
       } else {
         // Host of room
         socket.emit('createRoom', name);
         setIsHost(true);
-        setLoading(false);
       }
     }
   };
@@ -357,7 +355,24 @@ export default function Lobby() {
         <Container fluid className={styles.lobbyContainer}>
           {loading ? (
             <div className={styles.loadingLayout}>
-              <HashLoader size={180} loading={loading} color='#17a2b8' />
+              <div>
+                {falseRoom && <h1>Invalid Room</h1>}
+                <HashLoader
+                  size={180}
+                  loading={loading}
+                  color='#17a2b8'
+                  css='margin: 2rem 0rem 2rem 1.5rem;'
+                />
+                {falseRoom && (
+                  <Button
+                    onClick={handleBackToHome}
+                    className={styles.backToHomeBtn}
+                    variant='info'
+                  >
+                    Back to Home
+                  </Button>
+                )}
+              </div>
             </div>
           ) : (
             <Row>

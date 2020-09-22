@@ -26,7 +26,7 @@ export default function Settings({ settings }) {
                 <RangeSlider
                   value={timer}
                   min={20}
-                  max={90}
+                  max={60}
                   step={10}
                   size='lg'
                   tooltipPlacement='top'

@@ -34,6 +34,8 @@
 .loadingLayout {
   display: flex;
   align-items: center;
+  text-align: center;
+  color: white;
   justify-content: center;
   min-height: 80vh;
 }

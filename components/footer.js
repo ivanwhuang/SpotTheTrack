@@ -17,7 +17,7 @@ export default function Footer() {
         </a>{' '}
         and{' '}
         <a
-          href='https://github.com/butler-jelee21'
+          href='https://www.linkedin.com/in/jesselee615'
           target='_blank'
           className={styles.footerLink}
         >

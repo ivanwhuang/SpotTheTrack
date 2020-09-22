@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
 
     // socket functionality to join room and tell frontend
     socket.join(newRoom);
-    socket.emit('roomCode', newRoom);
+    socket.emit('newRoom', newRoom);
     socket.emit('roomInfo', rooms[newRoom]);
   });
 
