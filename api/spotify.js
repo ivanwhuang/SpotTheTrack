@@ -104,7 +104,7 @@ router.get('/initializeGameState', async (req, res) => {
   let artists = queryString.parse(req.query.artists, { arrayFormat: 'bracket' })
     .artists;
   let limit = queryString.parse(req.query.limit).limit || '20';
-  let searchLimit = '20';
+  let searchLimit = '30';
   let offset = 3;
   let reqs = [];
 
@@ -123,7 +123,12 @@ router.get('/initializeGameState', async (req, res) => {
       );
       let allTracks = [];
       filteredItems.forEach((item) =>
-        item.forEach((track) => allTracks.push(track))
+        item.forEach((track) => {
+          // remove tracks that don't contain an artist from 'artists'
+          if (track.artists.find((artist) => artists.includes(artist.name)) != null) {
+            allTracks.push(track);
+          }
+        })
       );
 
       let shuffledTracks = shuffle(allTracks);
@@ -138,8 +143,9 @@ router.get('/initializeGameState', async (req, res) => {
           let randomTrack = chooseRandom(shuffledTracks);
           let name = randomTrack.name
             .toString()
-            .split(/(\(.*|\s-\s.*|fe?a?t.*)/)[0]
+            .split(/(\(.*|\s-\s.*|f(ea)?t.*)/)[0]
             .trim();
+
           if (tracks.find((track) => track.name === name)) {
             continue;
           } else {
