@@ -12,9 +12,46 @@ var spotify = new Spotify({
   secret: process.env.SPOTIFY_SECRET,
 });
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
+// generate random integer between min and max (max not inclusive)
+const getRandomInt = (min, max) => {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
+// source: https://stackoverflow.com/a/6274381
+const shuffle = (a) => {
+  var j, x, i;
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = a[i];
+    a[i] = a[j];
+    a[j] = x;
+  }
+  return a;
+};
+
+const chooseRandom = (arr) => {
+  return arr[Math.floor(Math.random() * arr.length) % arr.length];
+};
+
+const urlSearch = (type, query, limit, offset) => {
+  return new Promise((resolve, reject) => {
+    let q = query.replace(/\s/g, '+');
+    let url = `https://api.spotify.com/v1/search?query=${q}&type=${type}&limit=${limit}&offset=${
+      offset * limit
+    }`;
+    spotify
+      .request(url)
+      .then((response) => resolve(response))
+      .catch((err) => reject(err));
+  })
+    .then((result) => {
+      return result;
+    })
+    .catch((err) => {
+      console.error(err);
+      return err;
+    });
+};
 
 // NOTE: DEPRECATED--USE api/spotify/initializeGameState
 // @route   GET api/spotify/gettrack
@@ -67,40 +104,6 @@ router.get('/gettrack', (req, res) => {
 //          to be played
 // @access  Public
 router.get('/initializeGameState', async (req, res) => {
-  // source: https://stackoverflow.com/a/6274381
-  const shuffle = (a) => {
-    var j, x, i;
-    for (i = a.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1));
-      x = a[i];
-      a[i] = a[j];
-      a[j] = x;
-    }
-    return a;
-  };
-
-  const chooseRandom = (arr) => {
-    return arr[Math.floor(Math.random() * arr.length) % arr.length];
-  };
-
-  const urlSearch = (type, query, limit, offset) => {
-    return new Promise((resolve, reject) => {
-      let q = query.replace(/\s/g, '+');
-      let url = `https://api.spotify.com/v1/search?query=${q}&type=${type}&limit=${limit}&offset=${offset*limit}`;
-      spotify
-        .request(url)
-        .then((response) => resolve(response))
-        .catch((err) => reject(err));
-    })
-      .then((result) => {
-        return result;
-      })
-      .catch((err) => {
-        console.error(err);
-        return err;
-      });
-  };
-
   let artists = queryString.parse(req.query.artists, { arrayFormat: 'bracket' })
     .artists;
   let limit = queryString.parse(req.query.limit).limit || '20';
@@ -113,7 +116,7 @@ router.get('/initializeGameState', async (req, res) => {
       reqs.push(urlSearch('track', artist, searchLimit, idx));
     });
   }
-  
+
   Promise.all(reqs)
     .then((allData) => {
       let items = allData.map((result) => result.tracks.items);
@@ -121,7 +124,7 @@ router.get('/initializeGameState', async (req, res) => {
       let filteredItems = items.map((item) =>
         item.filter((track) => track.preview_url !== null)
       );
-      
+
       let allTracks = [];
       let memory = new Set();
       let numTracks = 0;
@@ -129,7 +132,10 @@ router.get('/initializeGameState', async (req, res) => {
         item.forEach((track) => {
           numTracks++;
           // remove duplicates and tracks that don't contain an artist from 'artists'
-          if (track.artists.find((artist) => artists.includes(artist.name)) != null) {
+          if (
+            track.artists.find((artist) => artists.includes(artist.name)) !=
+            null
+          ) {
             let tmpName = track.name
               .toString()
               .toLowerCase()
@@ -147,7 +153,7 @@ router.get('/initializeGameState', async (req, res) => {
       // log parsing statistics
       console.log(`${numTracks} tracks contain a preview_url`);
       console.log(`${numTracks - allTracks.length} are garbage`);
-      
+
       let shuffledTracks = shuffle(allTracks);
       if (shuffledTracks.length < limit) {
         res.json(
@@ -171,47 +177,61 @@ router.get('/initializeGameState', async (req, res) => {
               artistsInSong.push(a.name);
             }
             if (randomTrack.preview_url !== null) {
-              let hint1Index = getRandomInt(Math.floor(name.length / 2));
-
-              while (name[hint1Index].match(/^[0-9a-zA-Z]$/) == null) {
-                console.log('generating hint1');
-                hint1Index = getRandomInt(Math.floor(name.length / 2));
-              }
-
-              let hint2Index =
-                getRandomInt(Math.floor(name.length) / 2) +
-                Math.floor(name.length / 2);
-
-              while (
-                hint2Index == hint1Index ||
-                name[hint2Index].match(/^[0-9a-zA-Z]$/) == null
-              ) {
-                console.log('generating hint2');
-                hint2Index =
-                  getRandomInt(Math.floor(name.length / 2)) +
-                  Math.floor(name.length / 2);
-              }
-
               let noHintStr = '';
               let hintStr1 = '';
               let hintStr2 = '';
-              for (let i = 0; i < name.length; i++) {
-                if (i == hint1Index) {
-                  noHintStr += '_';
-                  hintStr1 += name[i];
-                  hintStr2 += name[i];
-                } else if (i == hint2Index) {
-                  noHintStr += '_';
-                  hintStr1 += '_';
-                  hintStr2 += name[i];
-                } else if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
-                  noHintStr += name[i];
-                  hintStr1 += name[i];
-                  hintStr2 += name[i];
-                } else {
-                  noHintStr += '_';
-                  hintStr1 += '_';
-                  hintStr2 += '_';
+
+              if (name.length <= 3) {
+                for (let i = 0; i < name.length; i++) {
+                  if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
+                    noHintStr += name[i];
+                  } else {
+                    noHintStr += '_';
+                  }
+                }
+              } else {
+                // if length of song name is greater than or equal to 4
+                let hint1Index = getRandomInt(0, Math.floor(name.length / 2));
+
+                while (name[hint1Index].match(/^[0-9a-zA-Z]$/) == null) {
+                  console.log('generating hint1');
+                  hint1Index = getRandomInt(0, Math.floor(name.length / 2));
+                }
+
+                let hint2Index = getRandomInt(
+                  Math.floor(name.length) / 2,
+                  name.length
+                );
+
+                while (
+                  hint2Index == hint1Index ||
+                  name[hint2Index].match(/^[0-9a-zA-Z]$/) == null
+                ) {
+                  console.log('generating hint2');
+                  hint2Index = getRandomInt(
+                    Math.floor(name.length / 2),
+                    name.length
+                  );
+                }
+
+                for (let i = 0; i < name.length; i++) {
+                  if (i == hint1Index) {
+                    noHintStr += '_';
+                    hintStr1 += name[i];
+                    hintStr2 += name[i];
+                  } else if (i == hint2Index) {
+                    noHintStr += '_';
+                    hintStr1 += '_';
+                    hintStr2 += name[i];
+                  } else if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
+                    noHintStr += name[i];
+                    hintStr1 += name[i];
+                    hintStr2 += name[i];
+                  } else {
+                    noHintStr += '_';
+                    hintStr1 += '_';
+                    hintStr2 += '_';
+                  }
                 }
               }
 
@@ -229,7 +249,7 @@ router.get('/initializeGameState', async (req, res) => {
             }
           }
         }
-  
+
         console.log(tracks);
         res.json(
           JSON.stringify({
