@@ -105,7 +105,7 @@ router.get('/initializeGameState', async (req, res) => {
     .artists;
   let limit = queryString.parse(req.query.limit).limit || '20';
   let searchLimit = '30';
-  let offset = 3;
+  let offset = 5;
   let reqs = [];
 
   for (let idx = 0; idx < offset; ++idx) {
@@ -121,16 +121,33 @@ router.get('/initializeGameState', async (req, res) => {
       let filteredItems = items.map((item) =>
         item.filter((track) => track.preview_url !== null)
       );
+      
       let allTracks = [];
+      let memory = new Set();
+      let numTracks = 0;
       filteredItems.forEach((item) =>
         item.forEach((track) => {
-          // remove tracks that don't contain an artist from 'artists'
+          numTracks++;
+          // remove duplicates and tracks that don't contain an artist from 'artists'
           if (track.artists.find((artist) => artists.includes(artist.name)) != null) {
-            allTracks.push(track);
+            let tmpName = track.name
+              .toString()
+              .toLowerCase()
+              .split(/(\(.*|\s-\s.*|f(ea)?t.*)/)[0]
+              .trim();
+            if (!memory.has(tmpName)) {
+              console.log(tmpName);
+              allTracks.push(track);
+              memory.add(tmpName);
+            }
           }
         })
       );
 
+      // log parsing statistics
+      console.log(`${numTracks} tracks contain a preview_url`);
+      console.log(`${numTracks - allTracks.length} are garbage`);
+      
       let shuffledTracks = shuffle(allTracks);
       if (shuffledTracks.length < limit) {
         res.json(
@@ -145,11 +162,11 @@ router.get('/initializeGameState', async (req, res) => {
             .toString()
             .split(/(\(.*|\s-\s.*|f(ea)?t.*)/)[0]
             .trim();
-
+          console.log(`selected ${name}`);
           if (tracks.find((track) => track.name === name)) {
             continue;
           } else {
-            artistsInSong = [];
+            artistsInSong = []; // is this being used anywhere?
             for (let a of randomTrack.artists) {
               artistsInSong.push(a.name);
             }
@@ -157,6 +174,7 @@ router.get('/initializeGameState', async (req, res) => {
               let hint1Index = getRandomInt(Math.floor(name.length / 2));
 
               while (name[hint1Index].match(/^[0-9a-zA-Z]$/) == null) {
+                console.log('generating hint1');
                 hint1Index = getRandomInt(Math.floor(name.length / 2));
               }
 
@@ -168,6 +186,7 @@ router.get('/initializeGameState', async (req, res) => {
                 hint2Index == hint1Index ||
                 name[hint2Index].match(/^[0-9a-zA-Z]$/) == null
               ) {
+                console.log('generating hint2');
                 hint2Index =
                   getRandomInt(Math.floor(name.length / 2)) +
                   Math.floor(name.length / 2);
@@ -210,7 +229,8 @@ router.get('/initializeGameState', async (req, res) => {
             }
           }
         }
-        // console.log(tracks);
+  
+        console.log(tracks);
         res.json(
           JSON.stringify({
             tracks: tracks,
