@@ -209,10 +209,16 @@ export default function Lobby() {
       if (remainingTime <= 0) {
         return <div className={styles.timerText}>Time's up!</div>;
       } else {
-        if (remainingTime == Math.floor(settings.timer / 3)) {
+        if (
+          remainingTime == Math.floor(settings.timer / 3) &&
+          currentGameState.track.hintStr2 !== ''
+        ) {
           setHint(currentGameState.track.hintStr2);
         }
-        if (remainingTime == Math.floor(settings.timer / 3) * 2) {
+        if (
+          remainingTime == Math.floor(settings.timer / 3) * 2 &&
+          currentGameState.track.hintStr1 !== ''
+        ) {
           setHint(currentGameState.track.hintStr1);
         }
         return (

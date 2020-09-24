@@ -155,37 +155,42 @@ io.on('connection', (socket) => {
 
         // wait 5 seconds before actually starting the game
         setTimeout(() => {
-          rooms[room].roundChat = [];
-          io.in(room).emit('newRound', {
-            track: data.tracks[x++],
-            round: x,
-            serverTime: Date.now() + settings.timer * 1000,
-            roundChat: rooms[room].roundChat,
-          });
+          // TODO: need try-catch here
+          try {
+            rooms[room].roundChat = [];
+            io.in(room).emit('newRound', {
+              track: data.tracks[x++],
+              round: x,
+              serverTime: Date.now() + settings.timer * 1000,
+              roundChat: rooms[room].roundChat,
+            });
 
-          let interval = setInterval(() => {
-            if (!(room in rooms)) {
-              clearInterval(interval);
-            } else {
-              if (x >= parseInt(settings.numRounds)) {
+            let interval = setInterval(() => {
+              if (!(room in rooms)) {
                 clearInterval(interval);
-                io.in(room).emit('endOfGame');
               } else {
-                rooms[room].correctRoundGuesses = 0;
-                for (let i = 0; i < rooms[room].players.length; i++) {
-                  rooms[room].players[i].answered = false;
+                if (x >= parseInt(settings.numRounds)) {
+                  clearInterval(interval);
+                  io.in(room).emit('endOfGame');
+                } else {
+                  rooms[room].correctRoundGuesses = 0;
+                  for (let i = 0; i < rooms[room].players.length; i++) {
+                    rooms[room].players[i].answered = false;
+                  }
+                  rooms[room].roundChat = [];
+                  io.in(room).emit('playerInfo', rooms[room].players);
+                  io.in(room).emit('newRound', {
+                    track: data.tracks[x++],
+                    round: x,
+                    serverTime: Date.now() + settings.timer * 1000,
+                    roundChat: rooms[room].roundChat,
+                  });
                 }
-                rooms[room].roundChat = [];
-                io.in(room).emit('playerInfo', rooms[room].players);
-                io.in(room).emit('newRound', {
-                  track: data.tracks[x++],
-                  round: x,
-                  serverTime: Date.now() + settings.timer * 1000,
-                  roundChat: rooms[room].roundChat,
-                });
               }
-            }
-          }, (parseInt(settings.timer) + 2.5) * 1000);
+            }, (parseInt(settings.timer) + 2.5) * 1000);
+          } catch(err) {
+            console.error(err);
+          }
         }, 5000);
       }
     } catch (err) {
