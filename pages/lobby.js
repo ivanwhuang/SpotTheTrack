@@ -159,7 +159,7 @@ export default function Lobby() {
       });
 
       socket.on('newRound', ({ round, track, serverTime, roundChat }) => {
-        setHint(track.noHintStr);
+        setHint(track.hints['noHintStr']);
         setChatLog(roundChat);
         setGuess('');
 
@@ -178,7 +178,6 @@ export default function Lobby() {
 
       socket.on('chat', (roundChat) => {
         setChatLog(roundChat);
-        // scrollToBottomOfChat();
       });
 
       socket.on('endOfGame', () => {
@@ -210,17 +209,63 @@ export default function Lobby() {
         return <div className={styles.timerText}>Time's up!</div>;
       } else {
         if (
-          remainingTime == Math.floor(settings.timer / 3) &&
-          currentGameState.track.hintStr2 !== ''
+          remainingTime ==
+            Math.floor(
+              settings.timer / (currentGameState.track.numHints + 1)
+            ) &&
+          currentGameState.track.numHints >= 1
         ) {
-          setHint(currentGameState.track.hintStr2);
-        }
-        if (
-          remainingTime == Math.floor(settings.timer / 3) * 2 &&
-          currentGameState.track.hintStr1 !== ''
+          setHint(
+            currentGameState.track.hints[
+              'hintStr' + currentGameState.track.numHints
+            ]
+          );
+        } else if (
+          remainingTime ==
+            Math.floor(settings.timer / (currentGameState.track.numHints + 1)) *
+              2 &&
+          currentGameState.track.numHints >= 2
         ) {
-          setHint(currentGameState.track.hintStr1);
+          setHint(
+            currentGameState.track.hints[
+              'hintStr' + (currentGameState.track.numHints - 1)
+            ]
+          );
+        } else if (
+          remainingTime ==
+            Math.floor(settings.timer / (currentGameState.track.numHints + 1)) *
+              3 &&
+          currentGameState.track.numHints >= 3
+        ) {
+          setHint(
+            currentGameState.track.hints[
+              'hintStr' + (currentGameState.track.numHints - 2)
+            ]
+          );
+        } else if (
+          remainingTime ==
+            Math.floor(settings.timer / (currentGameState.track.numHints + 1)) *
+              4 &&
+          currentGameState.track.numHints >= 4
+        ) {
+          setHint(
+            currentGameState.track.hints[
+              'hintStr' + (currentGameState.track.numHints - 3)
+            ]
+          );
+        } else if (
+          remainingTime ==
+            Math.floor(settings.timer / (currentGameState.track.numHints + 1)) *
+              5 &&
+          currentGameState.track.numHints == 5
+        ) {
+          setHint(
+            currentGameState.track.hints[
+              'hintStr' + (currentGameState.track.numHints - 4)
+            ]
+          );
         }
+
         return (
           <div className={styles.timerText}>
             <div>Remaining</div>

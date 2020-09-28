@@ -158,12 +158,12 @@ export default function HostSetting({ updateSettings, settings }) {
             </Form.Group>
             <Form.Group as={Row}>
               <Form.Label column lg='4'>
-                Search For Artist
+                Find artists
               </Form.Label>
               <Col sm='9' lg='5'>
                 <Form.Control
                   type='text'
-                  placeholder='Khalid, Dabin ... '
+                  placeholder='Search by artist keyword'
                   value={artistKeyword}
                   onChange={handleChangeArtistKeyword}
                 />
