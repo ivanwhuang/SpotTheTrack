@@ -177,60 +177,106 @@ router.get('/initializeGameState', async (req, res) => {
               artistsInSong.push(a.name);
             }
             if (randomTrack.preview_url !== null) {
-              let noHintStr = '';
-              let hintStr1 = '';
-              let hintStr2 = '';
+              let hints = {
+                noHintStr: '',
+                hintStr1: '',
+                hintStr2: '',
+                hintStr3: '',
+                hintStr4: '',
+                hintStr5: '',
+              };
 
-              if (name.length <= 3) {
-                for (let i = 0; i < name.length; i++) {
-                  if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
-                    noHintStr += name[i];
-                  } else {
-                    noHintStr += '_';
+              let numHints = 0;
+              let hintIndices = [-1, -1, -1, -1, -1];
+
+              if (name.length <= 2) {
+                numHints = 0;
+              } else if (name.length >= 3 && name.length <= 4) {
+                numHints = 1;
+              } else if (name.length >= 5 && name.length <= 7) {
+                numHints = 2;
+              } else if (name.length >= 8 && name.length <= 10) {
+                numHints = 3;
+              } else if (name.length >= 11 && name.length <= 13) {
+                numHints = 4;
+              } else {
+                numHints = 5;
+              }
+
+              // A threshold to decide when to give up trying to generate hints
+              // useful for when a song's title contains only non-alphanumeric characters
+              let maxLoopCounter = 15;
+
+              // won't generate hint indices if length of song name is <= 2
+              for (let i = 0; i < numHints; i++) {
+                let newHintIndex = getRandomInt(0, name.length);
+                let loopCounter = 0;
+                while (
+                  hintIndices.includes(newHintIndex) ||
+                  name[newHintIndex].match(/^[0-9a-zA-Z]$/) == null
+                ) {
+                  newHintIndex = getRandomInt(0, name.length);
+                  loopCounter++;
+                  // adjust numHints accordingly if loop fails to find an alpha-numeric index
+                  if (loopCounter === maxLoopCounter) {
+                    numHints = i;
+                    break;
                   }
                 }
-              } else {
-                // if length of song name is greater than or equal to 4
-                let hint1Index = getRandomInt(0, Math.floor(name.length / 2));
+                hintIndices[i] = newHintIndex;
+              }
 
-                while (name[hint1Index].match(/^[0-9a-zA-Z]$/) == null) {
-                  console.log('generating hint1');
-                  hint1Index = getRandomInt(0, Math.floor(name.length / 2));
-                }
-
-                let hint2Index = getRandomInt(
-                  Math.floor(name.length) / 2,
-                  name.length
-                );
-
-                while (
-                  hint2Index == hint1Index ||
-                  name[hint2Index].match(/^[0-9a-zA-Z]$/) == null
-                ) {
-                  console.log('generating hint2');
-                  hint2Index = getRandomInt(
-                    Math.floor(name.length / 2),
-                    name.length
-                  );
-                }
-
-                for (let i = 0; i < name.length; i++) {
-                  if (i == hint1Index) {
-                    noHintStr += '_';
-                    hintStr1 += name[i];
-                    hintStr2 += name[i];
-                  } else if (i == hint2Index) {
-                    noHintStr += '_';
-                    hintStr1 += '_';
-                    hintStr2 += name[i];
-                  } else if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
-                    noHintStr += name[i];
-                    hintStr1 += name[i];
-                    hintStr2 += name[i];
-                  } else {
-                    noHintStr += '_';
-                    hintStr1 += '_';
-                    hintStr2 += '_';
+              for (let i = 0; i < name.length; i++) {
+                if (name[i].match(/^[0-9a-zA-Z]$/) == null) {
+                  hints['noHintStr'] += name[i];
+                  for (let n = 0; n < numHints; n++) {
+                    hints['hintStr' + (n + 1)] += name[i];
+                  }
+                } else if (i == hintIndices[0]) {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    hints['hintStr' + (n + 1)] += name[i];
+                  }
+                } else if (i == hintIndices[1]) {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    if (n <= 0) {
+                      hints['hintStr' + (n + 1)] += '_';
+                    } else {
+                      hints['hintStr' + (n + 1)] += name[i];
+                    }
+                  }
+                } else if (i == hintIndices[2]) {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    if (n <= 1) {
+                      hints['hintStr' + (n + 1)] += '_';
+                    } else {
+                      hints['hintStr' + (n + 1)] += name[i];
+                    }
+                  }
+                } else if (i == hintIndices[3]) {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    if (n <= 2) {
+                      hints['hintStr' + (n + 1)] += '_';
+                    } else {
+                      hints['hintStr' + (n + 1)] += name[i];
+                    }
+                  }
+                } else if (i == hintIndices[4]) {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    if (n <= 3) {
+                      hints['hintStr' + (n + 1)] += '_';
+                    } else {
+                      hints['hintStr' + (n + 1)] += name[i];
+                    }
+                  }
+                } else {
+                  hints['noHintStr'] += '_';
+                  for (let n = 0; n < numHints; n++) {
+                    hints['hintStr' + (n + 1)] += '_';
                   }
                 }
               }
@@ -241,9 +287,8 @@ router.get('/initializeGameState', async (req, res) => {
                 artists: randomTrack.artists,
                 preview: randomTrack.preview_url,
                 url: randomTrack.external_urls.spotify,
-                noHintStr: noHintStr,
-                hintStr1: hintStr1,
-                hintStr2: hintStr2,
+                hints: hints,
+                numHints: numHints,
               };
               tracks.push(track);
             }
