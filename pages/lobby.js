@@ -5,6 +5,7 @@ import styles from '../styles/Lobby.module.css';
 
 import axios from 'axios';
 import io from 'socket.io-client';
+import ReactGA from 'react-ga';
 
 import HostSettings from '../components/hostSettings';
 import Settings from '../components/settings';
@@ -34,6 +35,8 @@ const frontEndBaseURL =
 
 const backendBaseURL =
   process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
+
+const analytics_id = process.env.NEXT_PUBLIC_GA_ID || '';
 
 function useSocket(url) {
   const [socket, setSocket] = useState(null);
@@ -100,6 +103,11 @@ export default function Lobby() {
 
   useEffect(() => {
     if (socket && !socketConnected) {
+      if (analytics_id !== '') {
+        ReactGA.initialize(analytics_id);
+        ReactGA.pageview('/lobby');
+      }
+
       socket.on('connect', () => {
         setSocketConnected(true);
       });
@@ -339,6 +347,12 @@ export default function Lobby() {
         // Host of room
         socket.emit('createRoom', name);
         setIsHost(true);
+        if (analytics_id !== '') {
+          ReactGA.event({
+            category: 'Create Room',
+            action: 'A new room has been created',
+          });
+        }
       }
     }
   };
@@ -355,6 +369,12 @@ export default function Lobby() {
         settings: settings,
       };
       socket.emit('prepareGame', info);
+      if (analytics_id !== '') {
+        ReactGA.event({
+          category: 'Start Game',
+          action: 'Host has started a new game',
+        });
+      }
     } else {
       setToastInfo({
         header: 'Woops!',
@@ -439,7 +459,7 @@ export default function Lobby() {
                 <h5 style={{ color: 'white' }}>Room ID:</h5>
                 <p style={{ color: 'lightGray' }}>{room}</p>
                 <h5 style={{ color: 'white' }}>
-                  Invite Your Fiends!{' '}
+                  Invite Your Friends!{' '}
                   <Button onClick={copyInviteLink} variant='info' size='sm'>
                     Copy Link
                   </Button>{' '}

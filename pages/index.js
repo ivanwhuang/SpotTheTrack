@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import styles from '../styles/Landing.module.css';
 
@@ -6,6 +6,8 @@ import Link from 'next/link';
 import axios from 'axios';
 
 import { useRouter } from 'next/router';
+
+import ReactGA from 'react-ga';
 
 import {
   Container,
@@ -20,12 +22,21 @@ import {
 const backendBaseURL =
   process.env.NEXT_PUBLIC_BACK_END || 'http://localhost:5000';
 
+const analytics_id = process.env.NEXT_PUBLIC_GA_ID || '';
+
 export default function Home() {
   const router = useRouter();
 
   const [showModal, setShowModal] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [room, setRoom] = useState('');
+
+  useEffect(() => {
+    if (analytics_id !== '') {
+      ReactGA.initialize(analytics_id);
+      ReactGA.pageview('/');
+    }
+  }, []);
 
   const handleHostSubmit = (e) => {
     e.preventDefault();
